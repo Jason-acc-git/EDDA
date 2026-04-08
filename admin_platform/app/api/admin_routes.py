@@ -376,10 +376,44 @@ def export_to_excel(
     wb = Workbook()
     ws = wb.active
     ws.title = "시간외 및 휴일근무 내역"
-
-    # Set headers
+    
+    # Get the current year and month for the title
+    if start_date:
+        start_date_obj = datetime.strptime(start_date, '%Y-%m-%d')
+        title_date = start_date_obj.strftime('%Y년 %m월')
+    else:
+        title_date = datetime.now().strftime('%Y년 %m월')
+    
+    # Add title row with merged cells
+    ws.merge_cells('A1:K1')
+    title_cell = ws.cell(row=1, column=1, value=f"{title_date} 시간외 및 휴일근무 내역")
+    title_cell.alignment = Alignment(horizontal='center', vertical='center')
+    title_cell.font = Font(name='Malgun Gothic', size=18, bold=True)
+    
+    # Set row height for title row
+    ws.row_dimensions[1].height = 36.75
+    
+    # Add empty row
+    ws.append([])
+    
+    # Set headers at row 3
     headers = ["번호", "성명", "직번", "직급", "시간외 근로유형", "근무일", "요일", "근무시간 from", "근무시간 to", "부서장 인정시간", "연장근무 세부내역"]
     ws.append(headers)
+    
+    # Add another row for headers and merge cells except H and I
+    subheaders = ["", "", "", "", "", "", "", "시작", "종료", "", ""]
+    ws.append(subheaders)
+    
+    # Merge cells for headers (row 3 and 4) except columns H and I
+    for col in [1, 2, 3, 4, 5, 6, 7, 10, 11]:  # A, B, C, D, E, F, G, J, K
+        ws.merge_cells(start_row=3, start_column=col, end_row=4, end_column=col)
+    
+    # Set specific text for H3 and I3
+    ws.cell(row=3, column=8).value = "근무시간"
+    ws.cell(row=3, column=9).value = "근무시간"
+    
+    # Merge H3 and I3 horizontally
+    ws.merge_cells(start_row=3, start_column=8, end_row=3, end_column=9)
 
     # Fetch data
     where_clauses = []
@@ -412,7 +446,7 @@ def export_to_excel(
 
     grouped_requests = {k: list(v) for k, v in groupby(sorted(requests_result, key=get_name), key=get_name)}
 
-    row_num = 2
+    row_num = 5  # Start data from row 5 (after title row, empty row, header row, and subheader row)
     unique_id = 1
     for name, requests in grouped_requests.items():
         total_hours = 0
