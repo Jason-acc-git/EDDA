@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+
+{% block title %}대시보드{% endblock %}
+
+{% block content %}
+    <div class="d-flex justify-content-end align-items-center mb-3">
+        <span class="me-2"><strong>{{ current_user.name }}</strong> ({{ current_user.role }})님, 환영합니다.</span>
+        <a href="/logout" class="btn btn-sm btn-secondary">로그아웃</a>
+    </div>
+
+    <div class="card p-4 mb-4">
+        <h5 class="mb-3">신청하기</h5>
+        <div class="d-flex gap-2 flex-wrap">
+            <a href="/request/overtime" class="btn btn-primary">시간외 근무</a>
+            <a href="/request/compensatory-leave" class="btn btn-primary">대휴 신청</a>
+            <a href="/request/business-trip" class="btn btn-primary">출장</a>
+            <a href="/request/self-development" class="btn btn-primary">자기개발비</a>
+        </div>
+
+        {% if current_user.role in ['admin', 'manager', 'lead'] %}
+        <hr>
+        <h5 class="mb-3">관리</h5>
+        <div class="d-flex gap-2 flex-wrap">
+            <a href="/approve-list" class="btn btn-primary position-relative">
+              승인 관리
+              {% if pending_approvals > 0 %}
+                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                  {{ pending_approvals }}
+                  <span class="visually-hidden">unread messages</span>
+                </span>
+              {% endif %}
+            </a>
+            <a href="/admin-dashboard" class="btn btn-primary">문서관리</a>
+            <a href="/stats" class="btn btn-primary">통계 보기</a>
+            <a href="/settings" class="btn btn-primary">시간외 근무 설정</a>
+            {% if current_user.role in ['admin', 'lead'] %}
+            <a href="/employee/list" class="btn btn-primary">직원 관리</a>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="card p-4 mb-4">
+        <h5 class="mb-3">요약 정보</h5>
+        <div class="row">
+            <div class="col-md-4">
+                <p class="small">이번 달 누적 시간외 근무: <strong>{{ monthly_overtime }}시간</strong></p>
+            </div>
+            <div class="col-md-4">
+                <p class="small">남은 대휴: <strong>{{ remaining_compensatory_hours }}시간</strong></p>
+            </div>
+            <div class="col-md-4">
+                <p class="small">자기개발비 잔액: <strong>{{ '{:,.0f}'.format(remaining_dev_cost) }}원</strong></p>
+            </div>
+        </div>
+    </div>
+
+    <div class="card p-4" id="requests-section">
+        <h3 class="mb-4">내 신청내역</h3>
+        <div class="table-responsive">
+            <table class="table table-sm">
+                <thead>
+                    <tr>
+                        <th class="small">신청일</th>
+                        <th class="small">종류</th>
+                        <th class="small">내용</th>
+                        <th class="small">실행일</th>
+                        <th class="small">승인상태</th>
+                        <th class="small">관리</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for r in requests %}
+                    <tr>
+                        <td class="small">{{ r['created'].split(' ')[0] if r['created'] else '' }}</td>
+                        <td class="small">{{ r['type'] }}</td>
+                        <td class="small">{{ r.summary }}</td>
+                        <td class="small">
+                            {% set content = r.content | fromjson %}
+                            {% if r.type == '시간외 근무' %}
+                                {{ content.work_date }}
+                            {% elif r.type == '출장' %}
+                                {{ (content.start_date + "<br>~ " + content.end_date) | safe }}
+                            {% elif r.type == '대휴 사용' or r.type == '대휴신청' %}
+                                {{ content.leave_date }}
+                            {% elif r.type == '자기개발비' %}
+                                {{ (content.start_date + "<br>~ " + content.end_date) | safe }}
+                            {% endif %}
+                        </td>
+                        <td class="small">
+                            {% if r.status == "approved" %}
+                                승인 완료
+                            {% elif r.status == "rejected" %}
+                                반려
+                            {% else %}
+                                승인 대기
+                            {% endif %}
+                        </td>
+                        <td class="small">
+                            {% if r.type == '대휴신청' or r.type == '대휴 사용' %}
+                                {% if r.status == "approved" %}
+                                    -
+                                {% elif '승인 대기' in r.status %}
+                                    <a href="/request/edit/{{ r.id }}" class="btn btn-sm btn-outline-primary" style="color: #198754;">수정</a>
+                                {% endif %}
+                            {% elif r.status == "approved" %}
+                                <a href="/admin-dashboard/pdf/{{ r.id }}" class="btn btn-sm btn-pdf">PDF</a>
+                            {% elif '승인 대기' in r.status %}
+                                <a href="/request/edit/{{ r.id }}" class="btn btn-sm btn-outline-primary" style="color: #198754;">수정</a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <nav aria-label="Page navigation">
+            <ul class="pagination pagination-sm justify-content-center">
+                {% if page > 1 %}
+                <li class="page-item"><a class="page-link" href="?page=1#requests-section">&laquo;</a></li>
+                <li class="page-item"><a class="page-link" href="?page={{ page - 1 }}#requests-section">&lsaquo;</a></li>
+                {% endif %}
+
+                {% set start_page = [page - 2, 1] | max %}
+                {% set end_page = [page + 2, total_pages] | min %}
+
+                {% if start_page > 1 %}
+                <li class="page-item disabled"><span class="page-link">...</span></li>
+                {% endif %}
+
+                {% for i in range(start_page, end_page + 1) %}
+                <li class="page-item {% if i == page %}active{% endif %}"><a class="page-link" href="?page={{ i }}#requests-section">{{ i }}</a></li>
+                {% endfor %}
+
+                {% if end_page < total_pages %}
+                <li class="page-item disabled"><span class="page-link">...</span></li>
+                {% endif %}
+
+                {% if page < total_pages %}
+                <li class="page-item"><a class="page-link" href="?page={{ page + 1 }}#requests-section">&rsaquo;</a></li>
+                <li class="page-item"><a class="page-link" href="?page={{ total_pages }}#requests-section">&raquo;</a></li>
+                {% endif %}
+            </ul>
+        </nav>
+    </div>
+{% endblock %}

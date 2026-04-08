@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+
+<meta charset="UTF-8">
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<link href="/static/css/style.css?v=1.5" rel="stylesheet">
+
+<title>직원 목록</title>
+
+</head>
+
+
+<body>
+
+<div class="container mt-5">
+
+<h4>직원 목록</h4>
+
+<div class="d-flex justify-content-end mb-3">
+    <a href="/employee/manage" class="btn btn-primary">직원 추가</a>
+</div>
+
+<div class="table-responsive">
+    <table class="table" style="min-width: 800px;">
+
+    <thead>
+
+    <tr>
+    <th>이름</th>
+    <th>직번</th>
+    <th>부서</th>
+    <th>직급</th>
+    <th>근무시간</th>
+    <th>권한</th>
+    <th>이메일</th>
+    <th>서명</th>
+    <th>관리</th>
+    </tr>
+
+    </thead>
+
+
+    <tbody>
+
+    {% for e in employees %}
+
+    <tr>
+
+    <td>{{e[1]}}</td>
+    <td>{{e[2]}}</td>
+    <td>{{e[3]}}</td>
+    <td>{{e[4]}}</td>
+    <td>{{e[5]}}</td>
+    <td>{{e[6]}}</td>
+    <td>{{e[7]}}</td>
+
+    <td>
+    {% if e[8] %}
+    등록됨
+    {% else %}
+    -
+    {% endif %}
+    </td>
+
+    <td>
+
+    <a href="#" data-id="{{e[0]}}" onclick="editEmployee(this)"
+    class="btn btn-sm btn-outline-primary">
+    수정
+    </a>
+
+    <a href="#" data-id="{{e[0]}}" onclick="deleteEmployee(this)"
+    class="btn btn-sm btn-outline-danger">
+    삭제
+    </a>
+
+    </td>
+
+    </tr>
+
+    {% endfor %}
+
+    </tbody>
+
+    </table>
+</div>
+
+<a href="/dashboard" class="btn btn-secondary w-100 mt-3" style="padding-top: 0.25rem; padding-bottom: 0.25rem;">홈으로</a>
+
+</div>
+
+<script>
+function editEmployee(element) {
+    const id = element.getAttribute('data-id');
+    window.location.href = `/employee/edit?id=${id}`;
+}
+
+function deleteEmployee(element) {
+    const id = element.getAttribute('data-id');
+    if (confirm('정말로 삭제하시겠습니까?')) {
+        fetch(`/employee/delete/${id}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        })
+        .then(response => {
+            if (response.ok) {
+                window.location.reload();
+            } else {
+                alert('삭제에 실패했습니다.');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('삭제 중 오류가 발생했습니다.');
+        });
+    }
+}
+</script>
+
+</body>
+
+</html>

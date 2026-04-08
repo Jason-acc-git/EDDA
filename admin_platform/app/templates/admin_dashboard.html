@@ -1,0 +1,445 @@
+{% extends "base.html" %}
+
+{% block title %}문서 관리{% endblock %}
+
+{% block content %}
+    <div class="card p-4">
+        <h3 class="mb-4">문서관리</h3>
+
+        <form method="get" class="row g-3 mb-4">
+            <div class="col-md-3">
+                <label for="start_date" class="form-label" style="font-size: 0.8rem;">조회 시작일</label>
+                <input type="date" id="start_date" name="start_date" class="form-control form-control-sm" value="{{ start_date }}">
+            </div>
+            <div class="col-md-3">
+                <label for="end_date" class="form-label" style="font-size: 0.8rem;">조회 종료일</label>
+                <input type="date" id="end_date" name="end_date" class="form-control form-control-sm" value="{{ end_date }}">
+            </div>
+            <div class="col-md-3">
+                <label for="selected_name" class="form-label" style="font-size: 0.8rem;">신청자</label>
+                <select id="selected_name" name="selected_name" class="form-select form-select-sm">
+                    <option value="all">전체</option>
+                    {% for name in names %}
+                    <option value="{{ name }}" {% if name == selected_name %}selected{% endif %}>{{ name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label for="request_type" class="form-label" style="font-size: 0.8rem;">요청 종류</label>
+                <select id="request_type" name="request_type" class="form-select form-select-sm">
+                    <option value="all">전체</option>
+                    <option value="출장" {% if request_type == "출장" %}selected{% endif %}>출장</option>
+                    <option value="시간외 근무 - 수당지급" {% if request_type == "시간외 근무 - 수당지급" %}selected{% endif %}>시간외 근무 - 수당지급</option>
+                    <option value="시간외 근무 - 대체휴가" {% if request_type == "시간외 근무 - 대체휴가" %}selected{% endif %}>시간외 근무 - 대체휴가</option>
+                    <option value="자기개발비" {% if request_type == "자기개발비" %}selected{% endif %}>자기개발비</option>
+                    <option value="대휴신청" {% if request_type == "대휴신청" %}selected{% endif %}>대휴신청</option>
+                </select>
+            </div>
+            <div class="col-md-auto d-flex align-items-end flex-wrap">
+                <button type="submit" class="btn btn-primary btn-search me-2 mb-2">조회</button>
+            </div>
+
+        </form>
+    </div>
+
+    <div class="card p-4 mt-4" id="overtime-table">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h4 class="mb-0">시간외 근무</h4>
+            <div>
+                <button id="overtime-excel-export-btn" class="btn btn-sm btn-success">엑셀로 내보내기</button>
+                <button id="overtime-merge-btn" class="btn btn-sm btn-light-blue">선택문서 취합</button>
+            </div>
+        </div>
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th><input type="checkbox" id="overtime-select-all"></th>
+                        <th>신청자</th>
+                        <th>종류</th>
+                        <th>내용</th>
+                        <th>상태</th>
+                        <th>신청일</th>
+                        <th>관리</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for r in overtime_requests %}
+                    <tr>
+                        <td><input type="checkbox" class="overtime-request-checkbox" value="{{ r[0] }}"></td>
+                        <td>{{ r[1] }}</td>
+                        <td>{{ r[-1] }}</td>
+                        <td><button class="btn btn-sm btn-outline-secondary" data-content='{{ r[3] | tojson | safe }}' onclick="showDetail(this)">상세보기</button></td>
+                        <td>
+                            {% if r[4] == 'approved' %}
+                                승인 완료
+                            {% else %}
+                                승인 대기
+                            {% endif %}
+                        </td>
+                        <td>{{ r[5].split(' ')[0] }}</td>
+                        <td>
+                            {% if r[4] == 'approved' and r[-1] == '수당지급' %}
+                            <a href="/admin-dashboard/pdf/{{r[0]}}" class="btn btn-sm btn-pdf">PDF</a>
+                            {% else %}
+                            -
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <nav aria-label="Page navigation">
+            <ul class="pagination pagination-sm justify-content-center">
+                {% if overtime_total_pages > 1 %}
+                    <li class="page-item {% if overtime_current_page == 1 %}disabled{% endif %}">
+                        <a class="page-link" href="?overtime_page={{ overtime_current_page - 1 }}&start_date={{ start_date }}&end_date={{ end_date }}&selected_name={{ selected_name or '' }}&request_type={{ request_type or '' }}#overtime-table" aria-label="Previous">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
+                    </li>
+                    {% for page_num in range(1, overtime_total_pages + 1) %}
+                        <li class="page-item {% if page_num == overtime_current_page %}active{% endif %}">
+                            <a class="page-link" href="?overtime_page={{ page_num }}&start_date={{ start_date }}&end_date={{ end_date }}&selected_name={{ selected_name or '' }}&request_type={{ request_type or '' }}#overtime-table">{{ page_num }}</a>
+                        </li>
+                    {% endfor %}
+                    <li class="page-item {% if overtime_current_page == overtime_total_pages %}disabled{% endif %}">
+                        <a class="page-link" href="?overtime_page={{ overtime_current_page + 1 }}&start_date={{ start_date }}&end_date={{ end_date }}&selected_name={{ selected_name or '' }}&request_type={{ request_type or '' }}#overtime-table" aria-label="Next">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+    </div>
+
+    <div class="card p-4 mt-4" id="compensatory-table">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h4 class="mb-0">대휴 신청</h4>
+            <button id="compensatory-merge-btn" class="btn btn-sm btn-light-blue">선택문서 취합</button>
+        </div>
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th><input type="checkbox" id="compensatory-select-all"></th>
+                        <th>신청자</th>
+                        <th>종류</th>
+                        <th>내용</th>
+                        <th>상태</th>
+                        <th>신청일</th>
+                        <th>관리</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for r in compensatory_leave_requests %}
+                    <tr>
+                        <td><input type="checkbox" class="compensatory-request-checkbox" value="{{ r[0] }}"></td>
+                        <td>{{ r[1] }}</td>
+                        <td>{{ r[2] }}</td>
+                        <td><button class="btn btn-sm btn-outline-secondary" data-content='{{ r[3] | tojson | safe }}' onclick="showDetail(this)">상세보기</button></td>
+                        <td>
+                            {% if r[4] == 'approved' %}
+                                승인 완료
+                            {% else %}
+                                승인 대기
+                            {% endif %}
+                        </td>
+                        <td>{{ r[5].split(' ')[0] }}</td>
+                        <td>-</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <nav aria-label="Page navigation">
+            <ul class="pagination pagination-sm justify-content-center">
+                {% if compensatory_total_pages > 1 %}
+                    <li class="page-item {% if compensatory_current_page == 1 %}disabled{% endif %}">
+                        <a class="page-link" href="?compensatory_page={{ compensatory_current_page - 1 }}&start_date={{ start_date }}&end_date={{ end_date }}&selected_name={{ selected_name or '' }}&request_type={{ request_type or '' }}#compensatory-table" aria-label="Previous">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
+                    </li>
+                    {% for page_num in range(1, compensatory_total_pages + 1) %}
+                        <li class="page-item {% if page_num == compensatory_current_page %}active{% endif %}">
+                            <a class="page-link" href="?compensatory_page={{ page_num }}&start_date={{ start_date }}&end_date={{ end_date }}&selected_name={{ selected_name or '' }}&request_type={{ request_type or '' }}#compensatory-table">{{ page_num }}</a>
+                        </li>
+                    {% endfor %}
+                    <li class="page-item {% if compensatory_current_page == compensatory_total_pages %}disabled{% endif %}">
+                        <a class="page-link" href="?compensatory_page={{ compensatory_current_page + 1 }}&start_date={{ start_date }}&end_date={{ end_date }}&selected_name={{ selected_name or '' }}&request_type={{ request_type or '' }}#compensatory-table" aria-label="Next">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+    </div>
+
+    <div class="card p-4 mt-4" id="trip-table">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h4 class="mb-0">출장</h4>
+            <button id="trip-merge-btn" class="btn btn-sm btn-light-blue">선택문서 취합</button>
+        </div>
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th><input type="checkbox" id="trip-select-all"></th>
+                        <th>신청자</th>
+                        <th>종류</th>
+                        <th>내용</th>
+                        <th>상태</th>
+                        <th>신청일</th>
+                        <th>관리</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for r in trip_requests %}
+                    <tr>
+                        <td><input type="checkbox" class="trip-request-checkbox" value="{{ r[0] }}"></td>
+                        <td>{{ r[1] }}</td>
+                        <td>{{ r[2] }}</td>
+                        <td><button class="btn btn-sm btn-outline-secondary" data-content='{{ r[3] | tojson | safe }}' onclick="showDetail(this)">상세보기</button></td>
+                        <td>
+                            {% if r[4] == 'approved' %}
+                                승인 완료
+                            {% else %}
+                                승인 대기
+                            {% endif %}
+                        </td>
+                        <td>{{ r[5].split(' ')[0] }}</td>
+                        <td>
+                            {% if r[4] == 'approved' %}
+                            <a href="/admin-dashboard/pdf/{{r[0]}}" class="btn btn-sm btn-pdf">PDF</a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <nav aria-label="Page navigation">
+            <ul class="pagination pagination-sm justify-content-center">
+                {% if trip_total_pages > 1 %}
+                    <li class="page-item {% if trip_current_page == 1 %}disabled{% endif %}">
+                        <a class="page-link" href="?trip_page={{ trip_current_page - 1 }}&start_date={{ start_date }}&end_date={{ end_date }}&selected_name={{ selected_name or '' }}&request_type={{ request_type or '' }}#trip-table" aria-label="Previous">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
+                    </li>
+                    {% for page_num in range(1, trip_total_pages + 1) %}
+                        <li class="page-item {% if page_num == trip_current_page %}active{% endif %}">
+                            <a class="page-link" href="?trip_page={{ page_num }}&start_date={{ start_date }}&end_date={{ end_date }}&selected_name={{ selected_name or '' }}&request_type={{ request_type or '' }}#trip-table">{{ page_num }}</a>
+                        </li>
+                    {% endfor %}
+                    <li class="page-item {% if trip_current_page == trip_total_pages %}disabled{% endif %}">
+                        <a class="page-link" href="?trip_page={{ trip_current_page + 1 }}&start_date={{ start_date }}&end_date={{ end_date }}&selected_name={{ selected_name or '' }}&request_type={{ request_type or '' }}#trip-table" aria-label="Next">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+    </div>
+
+    <div class="card p-4 mt-4" id="dev-table">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h4 class="mb-0">자기개발비</h4>
+            <button id="dev-merge-btn" class="btn btn-sm btn-light-blue">선택문서 취합</button>
+        </div>
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th><input type="checkbox" id="dev-select-all"></th>
+                        <th>신청자</th>
+                        <th>종류</th>
+                        <th>내용</th>
+                        <th>상태</th>
+                        <th>신청일</th>
+                        <th>증빙서류</th>
+                        <th>관리</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for r in dev_requests %}
+                    <tr>
+                        <td><input type="checkbox" class="dev-request-checkbox" value="{{ r[0] }}"></td>
+                        <td>{{ r[1] }}</td>
+                        <td>{{ r[2] }}</td>
+                        <td><button class="btn btn-sm btn-outline-secondary" data-content='{{ r[3] | tojson | safe }}' onclick="showDetail(this)">상세보기</button></td>
+                        <td>
+                            {% if r[4] == 'approved' %}
+                                승인 완료
+                            {% else %}
+                                승인 대기
+                            {% endif %}
+                        </td>
+                        <td>{{ r[5].split(' ')[0] }}</td>
+                        <td>
+                            {% if r[8] %}
+                            <a href="/download/{{ r[0] }}" class="btn btn-sm btn-outline-dark">다운로드</a>
+                            {% else %}
+                            -
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if r[4] == 'approved' %}
+                            <a href="/admin-dashboard/pdf/{{r[0]}}" class="btn btn-sm btn-pdf">PDF</a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <nav aria-label="Page navigation">
+            <ul class="pagination pagination-sm justify-content-center">
+                {% if dev_total_pages > 1 %}
+                    <li class="page-item {% if dev_current_page == 1 %}disabled{% endif %}">
+                        <a class="page-link" href="?dev_page={{ dev_current_page - 1 }}&start_date={{ start_date }}&end_date={{ end_date }}&selected_name={{ selected_name or '' }}&request_type={{ request_type or '' }}#dev-table" aria-label="Previous">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
+                    </li>
+                    {% for page_num in range(1, dev_total_pages + 1) %}
+                        <li class="page-item {% if page_num == dev_current_page %}active{% endif %}">
+                            <a class="page-link" href="?dev_page={{ page_num }}&start_date={{ start_date }}&end_date={{ end_date }}&selected_name={{ selected_name or '' }}&request_type={{ request_type or '' }}#dev-table">{{ page_num }}</a>
+                        </li>
+                    {% endfor %}
+                    <li class="page-item {% if dev_current_page == dev_total_pages %}disabled{% endif %}">
+                        <a class="page-link" href="?dev_page={{ dev_current_page + 1 }}&start_date={{ start_date }}&end_date={{ end_date }}&selected_name={{ selected_name or '' }}&request_type={{ request_type or '' }}#dev-table" aria-label="Next">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+    </div>
+    <div class="mt-3">
+        <a href="/dashboard" class="btn btn-secondary w-100" style="padding-top: 0.25rem; padding-bottom: 0.25rem;">홈으로</a>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+<!-- Modal -->
+<div class="modal fade" id="detailModal" tabindex="-1" aria-labelledby="detailModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="detailModalLabel">신청 상세 내용</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="modalContent"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">닫기</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const startDateInput = document.getElementById('start_date');
+    const endDateInput = document.getElementById('end_date');
+    const selectedNameInput = document.getElementById('selected_name');
+
+    window.showDetail = function(button) {
+        const content = button.getAttribute('data-content');
+        const detailModal = new bootstrap.Modal(document.getElementById('detailModal'));
+        let data;
+        try {
+            // Try parsing once
+            data = JSON.parse(content);
+            // If the result is still a string, parse it again
+            if (typeof data === 'string') {
+                data = JSON.parse(data);
+            }
+        } catch (e) {
+            console.error("JSON parsing error:", e);
+            // If parsing fails, display the raw content for debugging
+            const errorHtml = `<p>상세 정보를 불러오는 데 실패했습니다. 아래는 원본 데이터입니다.</p><pre>${content}</pre>`;
+            document.getElementById("modalContent").innerHTML = errorHtml;
+            detailModal.show();
+            return;
+        }
+
+        const keyMap = {
+            "work_type": "근무 유형",
+            "work_date": "근무일",
+            "work_hours_weekday": "평일 근무시간",
+            "work_hours_holiday": "휴일 근무시간",
+            "reason_type": "신청 사유",
+            "reason_detail": "상세 사유",
+            "work_location": "근무 장소",
+            "compensation": "보상 유형",
+            "calculated_approved_hours": "인정 시간(수당)",
+            "calculated_compensatory_hours": "인정 시간(대휴)",
+            "course_title": "수강 항목",
+            "purpose": "목적",
+            "purpose_other": "목적 (직접 입력)",
+            "course_content": "수강 내용",
+            "cost": "비용",
+            "start_date": "시작일",
+            "end_date": "종료일",
+            "reference_site": "참고 사이트",
+            "region": "출장 지역",
+            "region_other": "출장 지역 (직접 입력)",
+            "organization": "출장 기관",
+            "transport": "이동 수단",
+            "leave_date": "휴가일",
+            "hours": "사용 시간",
+            "reason": "사유"
+        };
+
+        let html = '<table class="table table-bordered"><tbody>';
+        for (const [key, value] of Object.entries(data)) {
+            const label = keyMap[key] || key;
+            html += `<tr><td class="w-25 bg-light">${label}</td><td>${value}</td></tr>`;
+        }
+        html += '</tbody></table>';
+
+        document.getElementById("modalContent").innerHTML = html;
+        detailModal.show();
+    }
+
+    // Select All Checkboxes
+    document.getElementById('overtime-select-all').addEventListener('change', function() {
+        document.querySelectorAll('.overtime-request-checkbox').forEach(checkbox => checkbox.checked = this.checked);
+    });
+    document.getElementById('trip-select-all').addEventListener('change', function() {
+        document.querySelectorAll('.trip-request-checkbox').forEach(checkbox => checkbox.checked = this.checked);
+    });
+    document.getElementById('dev-select-all').addEventListener('change', function() {
+        document.querySelectorAll('.dev-request-checkbox').forEach(checkbox => checkbox.checked = this.checked);
+    });
+    document.getElementById('compensatory-select-all').addEventListener('change', function() {
+        document.querySelectorAll('.compensatory-request-checkbox').forEach(checkbox => checkbox.checked = this.checked);
+    });
+
+    // Merge Buttons
+    function setupMergeButton(buttonId, checkboxClass) {
+        document.getElementById(buttonId).addEventListener('click', function() {
+            const selectedIds = Array.from(document.querySelectorAll(`.${checkboxClass}:checked`)).map(cb => cb.value);
+            if (selectedIds.length > 0) {
+                window.location.href = `/admin-dashboard/pdf/merge?ids=${selectedIds.join(',')}`;
+            } else {
+                alert("취합할 문서를 선택해주세요.");
+            }
+        });
+    }
+    setupMergeButton('overtime-merge-btn', 'overtime-request-checkbox');
+    setupMergeButton('trip-merge-btn', 'trip-request-checkbox');
+    setupMergeButton('dev-merge-btn', 'dev-request-checkbox');
+    setupMergeButton('compensatory-merge-btn', 'compensatory-request-checkbox');
+    
+    // Excel Export Button
+    document.getElementById('overtime-excel-export-btn').addEventListener('click', function() {
+        const startDate = startDateInput.value;
+        const endDate = endDateInput.value;
+        const selectedName = selectedNameInput.value;
+        window.location.href = `/admin-dashboard/excel?start_date=${startDate}&end_date=${endDate}&selected_name=${selectedName}&request_type=시간외 근무 - 수당지급`;
+    });
+});
+</script>
+{% endblock %}

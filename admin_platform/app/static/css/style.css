@@ -1,0 +1,330 @@
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+
+:root {
+  /* Color Palette */
+  --primary-color: #F3F4F6; /* 매우 연한 회색 (버튼 배경) */
+  --primary-hover-color: #E5E7EB; /* 조금 더 진한 회색 */
+  --secondary-color: #FFFFFF; /* 흰색 (페이지 배경) */
+  --text-primary: #1F2937; /* 매우 짙은 회색 (기본 텍스트) */
+  --text-secondary: #6B7280; /* 중간 회색 (보조 텍스트) */
+  --border-color: #E5E7EB; /* 연한 회색 (테두리) */
+
+  /* Font Size */
+  --font-size-sm: 0.875rem; /* 14px */
+  --font-size-base: 0.9375rem; /* 15px */
+  --font-size-lg: 1.125rem; /* 18px */
+  --font-size-xl: 1.25rem; /* 20px */
+
+  /* Font Family */
+  --font-family-main: 'Pretendard', sans-serif;
+}
+
+body {
+  background-color: var(--secondary-color);
+  color: var(--text-primary);
+  font-family: var(--font-family-main);
+  font-size: var(--font-size-base);
+  font-weight: 400;
+}
+
+h3, h4, h5, .h3, .h4, .h5 {
+  font-weight: 600; /* SemiBold */
+  font-size: var(--font-size-lg);
+}
+
+.table {
+    font-size: 0.8rem;
+}
+
+.table th, .table td {
+    font-weight: 400; /* Regular - 굵지 않게 */
+    padding: 0.4rem;
+}
+
+.table th {
+    font-weight: 500; /* Medium - 헤더는 살짝 강조 */
+    color: var(--text-secondary);
+}
+
+label {
+  font-weight: 500; /* Medium */
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+}
+
+.card {
+  border-radius: 0; /* 각진 모서리 */
+  border: 1px solid var(--border-color);
+  box-shadow: none; /* 그림자 제거 */
+}
+
+.btn {
+  border-radius: 0; /* 각진 모서리 */
+  font-weight: 500;
+  font-size: var(--font-size-sm);
+  padding: 0.5rem 1rem;
+  transition: all 0.2s ease-in-out;
+  border: 1px solid var(--border-color);
+}
+
+.btn-primary, .btn-main {
+  background-color: var(--primary-color);
+  color: var(--text-primary);
+  border-color: var(--primary-color);
+}
+
+.btn-primary:hover, .btn-main:hover {
+  background-color: var(--primary-hover-color);
+  border-color: var(--primary-hover-color);
+}
+
+.btn-secondary {
+  background-color: transparent;
+  color: var(--text-secondary);
+}
+
+.btn-secondary:hover {
+  background-color: #F9FAFB; /* 매우 옅은 회색 */
+  color: var(--text-primary);
+}
+
+.btn-dark {
+    background-color: #374151;
+    color: #FFFFFF;
+}
+.btn-dark:hover {
+    background-color: #1F2937;
+}
+
+.btn-info {
+    background-color: #A5B4FC; /* 연한 인디고 */
+    color: #1E1B4B;
+    border-color: #A5B4FC;
+}
+.btn-info:hover {
+    background-color: #818CFE;
+    border-color: #818CFE;
+}
+
+.form-text-sm {
+    font-size: 0.8rem; /* 12.8px */
+}
+
+.alert-light-yellow {
+    background-color: #FFFBEB;
+    color: #B45309;
+    border-color: var(--border-color);
+}
+
+.form-control-sm,
+.form-select-sm {
+    padding-top: 0.25rem;
+    padding-bottom: 0.25rem;
+    font-size: 0.875rem;
+    border-radius: 0.2rem;
+}
+
+.table-fixed {
+    table-layout: fixed;
+}
+
+.table-fixed th:nth-child(1) { width: 10%; }
+.table-fixed th:nth-child(2) { width: 10%; }
+.table-fixed th:nth-child(3) { width: 10%; }
+.table-fixed th:nth-child(4) { width: 20%; }
+.table-fixed th:nth-child(5) { width: 15%; }
+.table-fixed th:nth-child(6) { width: 15%; }
+.table-fixed th:nth-child(7) { width: 10%; }
+.table-fixed th:nth-child(8) { width: 10%; }
+
+.btn-sm {
+    padding: 0.1rem 0.4rem;
+    font-size: 0.75rem;
+}
+
+.pagination-sm .page-link {
+    padding: 0.05rem 0.3rem;
+    font-size: 0.6rem;
+    color: #adb5bd;
+}
+
+.pagination-sm .page-item.active .page-link {
+    background-color: #adb5bd;
+    border-color: #adb5bd;
+    color: white;
+}
+
+.btn-pdf {
+    background-color: transparent;
+    color: #0d6efd !important;
+    border-color: #ced4da;
+    padding: 0.1rem 0.4rem;
+    font-size: 0.75rem;
+}
+
+.btn-pdf:hover {
+    background-color: #0d6efd;
+    color: #ffffff !important;
+}
+
+.btn-outline-primary:active {
+    color: #fff !important;
+    background-color: #198754 !important;
+    border-color: #198754 !important;
+}
+
+.btn-outline-primary:hover {
+    color: #fff !important;
+    background-color: #198754 !important;
+    border-color: #198754 !important;
+}
+
+.btn-light-blue {
+    background-color: #D8E2F3;
+    color: #374151;
+    border-color: #D8E2F3;
+}
+
+.btn-light-blue:hover {
+    background-color: #C5D4E8;
+    border-color: #C5D4E8;
+}
+
+.btn-search {
+    width: 80px;
+}
+
+.btn-export {
+    width: 140px;
+}
+
+.stat-card {
+    width: 100px;
+}
+
+.btn-submit {
+    background-color: #2c3e50; /* 진한 남색 */
+    color: white;
+    border-color: #2c3e50;
+}
+
+.btn-submit:hover {
+    background-color: #1a252f;
+    border-color: #1a252f;
+}
+
+
+
+.pagination-custom {
+    display: flex;
+    justify-content: center;
+    padding-left: 0;
+    list-style: none;
+    border-radius: .25rem;
+}
+
+.pagination-custom li a {
+    color: #6c757d;
+    text-decoration: none;
+    background-color: #fff;
+    border: 1px solid #dee2e6;
+    padding: .375rem .75rem;
+    position: relative;
+    display: block;
+}
+
+.pagination-custom li:first-child a {
+    border-top-left-radius: .25rem;
+    border-bottom-left-radius: .25rem;
+}
+
+.pagination-custom li:last-child a {
+    border-top-right-radius: .25rem;
+    border-bottom-right-radius: .25rem;
+}
+
+.pagination-custom li.active a {
+    z-index: 3;
+    color: #fff;
+    background-color: #6c757d;
+    border-color: #6c757d;
+}
+
+.pagination-custom li a:hover {
+    z-index: 2;
+    color: #0a58ca;
+    background-color: #e9ecef;
+    border-color: #dee2e6;
+}
+
+/* Mobile-responsive styles */
+@media (max-width: 768px) {
+    .container, .container-fluid {
+        padding-left: 15px;
+        padding-right: 15px;
+    }
+
+    .card {
+        padding: 1rem;
+        height: 100%;
+    }
+
+    .card-body {
+        padding: 0.25rem;
+    }
+
+    .table-responsive {
+        display: block;
+        width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .table-responsive > .table-bordered {
+        border: 0;
+    }
+
+    .table th, .table td {
+        white-space: nowrap;
+    }
+
+    h3, .h3 {
+        font-size: var(--font-size-lg);
+    }
+
+    .d-flex.gap-2 {
+        flex-direction: column;
+    }
+
+    .d-flex.gap-2 .btn {
+        width: 100%;
+    }
+}
+
+.form-check-input:checked {
+    background-color: #2c3e50;
+    border-color: #2c3e50;
+}
+
+.search-form-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.search-form-item {
+    flex: 1 1 200px; /* flex-grow, flex-shrink, flex-basis */
+}
+
+.search-form-button {
+    flex: 1 1 100%;
+    text-align: right;
+    margin-top: 1rem;
+}
+
+@media (max-width: 768px) {
+    .search-form-button {
+        justify-content: flex-start;
+        margin-top: 1rem;
+    }
+}

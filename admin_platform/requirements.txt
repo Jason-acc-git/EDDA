@@ -1,0 +1,11 @@
+fastapi
+uvicorn
+jinja2
+python-multipart
+reportlab
+pandas
+PyPDF2
+httpx
+aiofiles
+
+gunicorn

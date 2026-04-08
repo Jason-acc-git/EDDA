@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>승인 확인서</title>
+    <style>
+        body {
+            font-family: 'Pretendard', sans-serif;
+        }
+        .certificate-container {
+            width: 80%;
+            margin: 0 auto;
+            padding: 20px;
+            border: 1px solid #ccc;
+        }
+        h1 {
+            text-align: center;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #ccc;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+    <div class="certificate-container">
+        <h1>승인 확인서</h1>
+        <table>
+            {% for key, value in request_data.items() %}
+            <tr>
+                <th>{{ key }}</th>
+                <td>{{ value }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+
+        <h2>승인 정보</h2>
+        <table>
+            <tr>
+                <th>승인자</th>
+                <th>승인일</th>
+                <th>서명</th>
+            </tr>
+            <tr>
+                <td>Lead</td>
+                <td>{{ request_data.approved_by_lead_at if request_data.approved_by_lead_at else '-' }}</td>
+                <td>{% if request_data.approved_by_lead_at %}<img src="/static/signatures/lead_signature.png" alt="Lead Signature" width="100">{% endif %}</td>
+            </tr>
+            <tr>
+                <td>Manager</td>
+                <td>{{ request_data.approved_by_manager_at if request_data.approved_by_manager_at else '-' }}</td>
+                <td>{% if request_data.approved_by_manager_at %}<img src="/static/signatures/manager_signature.png" alt="Manager Signature" width="100">{% endif %}</td>
+            </tr>
+            <tr>
+                <td>Admin</td>
+                <td>{{ request_data.approved_by_admin_at if request_data.approved_by_admin_at else '-' }}</td>
+                <td>{% if request_data.approved_by_admin_at %}<img src="/static/signatures/admin_signature.png" alt="Admin Signature" width="100">{% endif %}</td>
+            </tr>
+        </table>
+    </div>
+</body>
+</html>

@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+
+{% block title %}통계{% endblock %}
+
+{% block content %}
+    <h3 class="mb-4">직원별 시간외 근무 시간</h3>
+
+    <div class="d-flex justify-content-end mb-3">
+        <div class="btn-group" role="group">
+            <input type="radio" class="btn-check" name="period" id="monthly" autocomplete="off" checked>
+            <label class="btn btn-outline-secondary btn-sm" for="monthly">월별</label>
+
+            <input type="radio" class="btn-check" name="period" id="yearly" autocomplete="off">
+            <label class="btn btn-outline-secondary btn-sm" for="yearly">연간</label>
+        </div>
+        <div id="month-selector" class="ms-3">
+            <select class="form-select form-select-sm" id="month-dropdown">
+                <!-- Options will be populated by JavaScript -->
+            </select>
+        </div>
+    </div>
+
+    <canvas id="overtimeChart"></canvas>
+    <p class="text-muted small mt-2">* 월별 집계 기간은 전달 16일부터 해당 월 15일까지입니다.</p>
+
+    <hr class="my-5">
+
+    <h4 class="mb-4">대휴 / 자기개발비 현황</h4>
+    <div id="employeeStatusTable"></div>
+
+    <div class="mt-3">
+        <a href="/dashboard" class="btn btn-secondary w-100" style="padding-top: 0.25rem; padding-bottom: 0.25rem;">홈으로</a>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        let overtimeChart;
+        const monthDropdown = document.getElementById('month-dropdown');
+        const monthSelector = document.getElementById('month-selector');
+
+        // Populate month dropdown
+        const today = new Date();
+        for (let i = 0; i < 6; i++) {
+            const date = new Date(today.getFullYear(), today.getMonth() - i, 1);
+            const option = document.createElement('option');
+            option.value = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+            option.textContent = `${date.getFullYear()}년 ${date.getMonth() + 1}월`;
+            monthDropdown.appendChild(option);
+        }
+
+        function fetchAndRenderOvertimeChart(period, month = null) {
+            let url = `/api/stats/overtime-hours?period=${period}`;
+            if (period === 'monthly' && month) {
+                url += `&month=${month}`;
+            }
+            console.log("Fetching data from:", url);
+
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    const ctx = document.getElementById('overtimeChart').getContext('2d');
+                    if (overtimeChart) {
+                        overtimeChart.destroy();
+                    }
+                    overtimeChart = new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: data.labels,
+                            datasets: [{
+                                label: `시간외 근무 시간 (${period === 'monthly' ? (month ? `${month.split('-')[0]}년 ${parseInt(month.split('-')[1])}월` : '월별') : '연간'})`,
+                                data: data.data,
+                                backgroundColor: '#A9D0F5',
+                                borderColor: '#A9D0F5',
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            plugins: {
+                                legend: {
+                                    display: false,
+                                },
+                                title: {
+                                    display: false,
+                                    text: `직원별 시간외 근무 시간`
+                                }
+                            },
+                            scales: {
+                                y: {
+                                    beginAtZero: true
+                                }
+                            }
+                        }
+                    });
+                });
+        }
+
+        function setupEventListeners() {
+            document.querySelectorAll('input[name="period"]').forEach(radio => {
+                radio.addEventListener('change', () => {
+                    if (radio.id === 'monthly') {
+                        monthSelector.style.display = 'block';
+                        fetchAndRenderOvertimeChart('monthly', monthDropdown.value);
+                    } else {
+                        monthSelector.style.display = 'none';
+                        fetchAndRenderOvertimeChart('yearly');
+                    }
+                });
+            });
+
+            monthDropdown.addEventListener('change', (event) => {
+                fetchAndRenderOvertimeChart('monthly', event.target.value);
+            });
+        }
+
+        // Initial setup
+        setupEventListeners();
+        fetchAndRenderOvertimeChart('monthly', monthDropdown.value);
+
+        fetch('/api/stats/employee-status')
+            .then(response => response.json())
+            .then(data => {
+                let table = '<table class="table"><thead><tr><th>이름</th><th>남은 대휴 (시간)</th><th>자기개발비 잔액 (원)</th></tr></thead><tbody>';
+                data.forEach(emp => {
+                    table += `<tr><td>${emp.name}</td><td>${emp.remaining_compensatory_hours}</td><td>${emp.remaining_dev_cost.toLocaleString()}</td></tr>`;
+                });
+                table += '</tbody></table>';
+                document.getElementById('employeeStatusTable').innerHTML = table;
+            });
+    });
+</script>
+{% endblock %}
