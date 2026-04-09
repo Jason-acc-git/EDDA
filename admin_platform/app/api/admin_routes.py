@@ -22,7 +22,8 @@ import glob
 import json
 from PyPDF2 import PdfMerger
 from openpyxl import load_workbook, Workbook
-from openpyxl.styles import Font, Alignment, PatternFill
+from openpyxl.styles import Font, Alignment, PatternFill, colors
+from openpyxl.styles.colors import Color
 from openpyxl.writer.excel import save_workbook
 from sqlalchemy.orm import Session
 from sqlalchemy import text
@@ -388,7 +389,7 @@ def export_to_excel(
     ws.merge_cells('A1:K1')
     title_cell = ws.cell(row=1, column=1, value=f"{title_date} 시간외 및 휴일근무 내역")
     title_cell.alignment = Alignment(horizontal='center', vertical='center')
-    title_cell.font = Font(name='Malgun Gothic', size=18, bold=True)
+    title_cell.font = Font(name='Malgun Gothic', size=18, bold=True, color='FF000000')
     
     # Set row height for title row
     ws.row_dimensions[1].height = 36.75
@@ -414,6 +415,23 @@ def export_to_excel(
     
     # Merge H3 and I3 horizontally
     ws.merge_cells(start_row=3, start_column=8, end_row=3, end_column=9)
+    
+    # Set header style (rows 3 and 4): white bold text on dark blue background
+    # In openpyxl, colors are specified in RRGGBB format (without # prefix)
+    # For white text, we use FFFFFF
+    # header_font = Font(name='Malgun Gothic', size=20, bold=True, color='FFFFFFFF')
+    
+    # 헤더 스타일 정의
+    header_fill = PatternFill(start_color='FFffffff', end_color='FFffffff', fill_type='solid')
+    # header_fill = PatternFill(start_color='FF081F5C', end_color='FF081F5C', fill_type='solid')
+    header_font = Font(name='Malgun Gothic', size=11, bold=True, color='FFFFFFFF')
+    
+    # 헤더 셀에 스타일 적용
+    for row in range(3, 5):  # Rows 3 and 4
+        for col in range(1, 12):  # Columns A through K
+            cell = ws.cell(row=row, column=col)
+            cell.fill = header_fill
+            cell.font = header_font
 
     # Fetch data
     where_clauses = []
@@ -450,6 +468,8 @@ def export_to_excel(
     unique_id = 1
     for name, requests in grouped_requests.items():
         total_hours = 0
+        start_row = row_num  # Remember the starting row for this name group
+        
         for i, row_mapping in enumerate(requests):
             row = row_mapping._mapping
             content = json.loads(row['content'])
@@ -495,17 +515,23 @@ def export_to_excel(
             ws.cell(row=row_num, column=11, value=content.get('reason_detail', ''))
             row_num += 1
 
+        # Merge cells in column B (name) if there are multiple rows for this name
+        if row_num > start_row + 1:  # If there's more than one row for this name
+            ws.merge_cells(start_row=start_row, start_column=2, end_row=row_num-1, end_column=2)
+        
         # Add summary row
         ws.cell(row=row_num, column=10, value=total_hours)
         row_num += 1
 
     # Set font and alignment for all cells
-    font = Font(name='Malgun Gothic', size=9)
+    default_font = Font(name='Malgun Gothic', size=9)
     center_alignment = Alignment(horizontal='center', vertical='center')
 
-    for row in ws.iter_rows():
+    for row_idx, row in enumerate(ws.iter_rows(), 1):  # row_idx starts from 1
         for cell in row:
-            cell.font = font
+            # Skip title row (row 1) to preserve its font settings
+            if row_idx != 1:
+                cell.font = default_font
             if cell.column != 11:  # "연장근무 세부내역" column
                 cell.alignment = center_alignment
 
