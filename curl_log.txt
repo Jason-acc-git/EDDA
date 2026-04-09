@@ -1,0 +1,25 @@
+* Host localhost:8000 was resolved.
+* IPv6: ::1
+* IPv4: 127.0.0.1
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0*   Trying [::1]:8000...
+* connect to ::1 port 8000 from ::1 port 50070 failed: Connection refused
+*   Trying 127.0.0.1:8000...
+* Connected to localhost (127.0.0.1) port 8000
+> GET / HTTP/1.1
+> Host: localhost:8000
+> User-Agent: curl/8.7.1
+> Accept: */*
+> 
+* Request completely sent off
+< HTTP/1.1 500 Internal Server Error
+< date: Thu, 09 Apr 2026 06:26:35 GMT
+< server: uvicorn
+< content-length: 21
+< content-type: text/plain; charset=utf-8
+< 
+{ [21 bytes data]
+100    21  100    21    0     0   1357      0 --:--:-- --:--:-- --:--:--  1400
+* Connection #0 to host localhost left intact
+Internal Server Error

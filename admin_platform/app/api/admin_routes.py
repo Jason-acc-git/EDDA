@@ -389,7 +389,7 @@ def export_to_excel(
     ws.merge_cells('A1:K1')
     title_cell = ws.cell(row=1, column=1, value=f"{title_date} 시간외 및 휴일근무 내역")
     title_cell.alignment = Alignment(horizontal='center', vertical='center')
-    title_cell.font = Font(name='Malgun Gothic', size=18, bold=True, color='FFFFff00')
+    title_cell.font = Font(name='Malgun Gothic', size=18, bold=True, color='FF000000')
     
     # Set row height for title row
     ws.row_dimensions[1].height = 36.75
@@ -422,8 +422,8 @@ def export_to_excel(
     # header_font = Font(name='Malgun Gothic', size=20, bold=True, color='FFFFFFFF')
     
     # 헤더 스타일 정의
-    header_fill = PatternFill(start_color='FFffffff', end_color='FFffffff', fill_type='solid')
-    # header_fill = PatternFill(start_color='FF081F5C', end_color='FF081F5C', fill_type='solid')
+    # header_fill = PatternFill(start_color='FFffffff', end_color='FFffffff', fill_type='solid')
+    header_fill = PatternFill(start_color='FF081F5C', end_color='FF081F5C', fill_type='solid')
     header_font = Font(name='Malgun Gothic', size=11, bold=True, color='FFFFFFFF')
     
     # 헤더 셀에 스타일 적용
@@ -515,24 +515,61 @@ def export_to_excel(
             ws.cell(row=row_num, column=11, value=content.get('reason_detail', ''))
             row_num += 1
 
-        # Merge cells in column B (name) if there are multiple rows for this name
+        # Merge cells in column A, B, C, D (no, name, emp_no, position) if there are multiple rows for this name
         if row_num > start_row + 1:  # If there's more than one row for this name
+            # A열(번호) 병합
+            ws.merge_cells(start_row=start_row, start_column=1, end_row=row_num-1, end_column=1)
+            # B열(성명) 병합
             ws.merge_cells(start_row=start_row, start_column=2, end_row=row_num-1, end_column=2)
+            # C열(직번) 병합
+            ws.merge_cells(start_row=start_row, start_column=3, end_row=row_num-1, end_column=3)
+            # D열(직급) 병합
+            ws.merge_cells(start_row=start_row, start_column=4, end_row=row_num-1, end_column=4)
         
         # Add summary row
         ws.cell(row=row_num, column=10, value=total_hours)
+        
+        # 합계 행 설정 (A~I 셀 병합, "계" 표시, 배경색 설정)
+        # A부터 I까지 셀 병합
+        ws.merge_cells(start_row=row_num, start_column=1, end_row=row_num, end_column=9)
+        merged_cell = ws.cell(row=row_num, column=1)
+        merged_cell.value = "계"
+        merged_cell.alignment = Alignment(horizontal='center', vertical='center')
+        
+        # 배경색 설정 (16진수 D9D9D9)
+        gray_fill = PatternFill(start_color="D9D9D9", end_color="D9D9D9", fill_type="solid")
+        
+        # 병합된 셀과 J열, K열 셀에 배경색 적용
+        for col in range(1, 12):  # A부터 K열까지
+            cell = ws.cell(row=row_num, column=col)
+            cell.fill = gray_fill
+        
         row_num += 1
 
     # Set font and alignment for all cells
     default_font = Font(name='Malgun Gothic', size=9)
     center_alignment = Alignment(horizontal='center', vertical='center')
 
+    # 열 너비 설정
+    ws.column_dimensions['A'].width = 5.17   # A열
+    ws.column_dimensions['B'].width = 11.33  # B열
+    ws.column_dimensions['C'].width = 8      # C열
+    ws.column_dimensions['D'].width = 11.83  # D열
+    ws.column_dimensions['E'].width = 19.83  # E열
+    ws.column_dimensions['F'].width = 8.83   # F열
+    ws.column_dimensions['K'].width = 47     # K열
+    
+    header_rows = {3, 4}
+
     for row_idx, row in enumerate(ws.iter_rows(), 1):  # row_idx starts from 1
         for cell in row:
             # Skip title row (row 1) to preserve its font settings
-            if row_idx != 1:
+            if row_idx != 1 and row_idx not in header_rows:  # Apply default font only to non-header rows
                 cell.font = default_font
             if cell.column != 11:  # "연장근무 세부내역" column
+                cell.alignment = center_alignment
+            # k3, k4 셀(K열의 3행과 4행)에도 수직 가운데 정렬 적용
+            elif row_idx in [3, 4] and cell.column == 11:
                 cell.alignment = center_alignment
 
     # Save the workbook to a BytesIO object
