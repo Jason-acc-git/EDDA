@@ -510,7 +510,14 @@ def export_to_excel(
             ws.cell(row=row_num, column=8, value=work_time_range[0])
             ws.cell(row=row_num, column=9, value=work_time_range[1] if len(work_time_range) > 1 else '')
             hours = content.get('work_hours_weekday', 0) + content.get('work_hours_holiday', 0)
-            ws.cell(row=row_num, column=10, value=hours)
+            
+            # J열(10번 열)에 시간 값 설정 및 자동 줄바꿈 서식 적용
+            j_cell = ws.cell(row=row_num, column=10, value=hours)
+            if row_num == 3:
+                j_cell.alignment = Alignment(horizontal='center', vertical='center', wrap_text=True)
+            else:
+                j_cell.alignment = Alignment(horizontal='center', vertical='center')
+            
             total_hours += hours
             ws.cell(row=row_num, column=11, value=content.get('reason_detail', ''))
             row_num += 1
