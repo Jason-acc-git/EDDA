@@ -424,7 +424,7 @@ def export_to_excel(
     # 헤더 스타일 정의
     # header_fill = PatternFill(start_color='FFffffff', end_color='FFffffff', fill_type='solid')
     header_fill = PatternFill(start_color='FF081F5C', end_color='FF081F5C', fill_type='solid')
-    header_font = Font(name='Malgun Gothic', size=11, bold=True, color='FFFFFF00')
+    header_font = Font(name='Malgun Gothic', size=11, bold=True, color='FFFF0000')
     
     # 헤더 셀에 스타일 적용
     for row in range(3, 5):  # Rows 3 and 4
