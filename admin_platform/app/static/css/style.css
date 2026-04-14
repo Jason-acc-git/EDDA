@@ -328,3 +328,25 @@ label {
         margin-top: 1rem;
     }
 }
+
+/* 로고 애니메이션 */
+@keyframes moveLeftRight {
+    0% { transform: translateX(0); }
+    25% { transform: translateX(100px); }
+    50% { transform: translateX(300px); }
+    75% { transform: translateX(100px); }
+    100% { transform: translateX(0); }
+}
+
+.animated-logo {
+    animation: moveLeftRight 5s ease-in-out infinite !important;
+    position: relative !important;
+    z-index: 10 !important;
+    display: inline-block !important;
+}
+
+/* 로고 컨테이너에 오버플로우 숨김 처리 */
+.logo-container {
+    overflow: visible !important;
+    position: relative !important;
+}
