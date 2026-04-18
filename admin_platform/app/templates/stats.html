@@ -41,13 +41,22 @@
         const monthDropdown = document.getElementById('month-dropdown');
         const monthSelector = document.getElementById('month-selector');
 
-        // Populate month dropdown
+        // 월 드롭다운 초기화
         const today = new Date();
-        for (let i = 0; i < 6; i++) {
-            const date = new Date(today.getFullYear(), today.getMonth() - i, 1);
+        const currentYear = today.getFullYear();
+        const currentMonth = today.getMonth() + 1;
+        
+        // 현재 년도의 모든 월(1월부터 12월까지) 추가
+        for (let month = 1; month <= 12; month++) {
             const option = document.createElement('option');
-            option.value = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-            option.textContent = `${date.getFullYear()}년 ${date.getMonth() + 1}월`;
+            option.value = `${currentYear}-${String(month).padStart(2, '0')}`;
+            option.textContent = `${currentYear}년 ${month}월`;
+            
+            // 현재 월을 기본 선택
+            if (month === currentMonth) {
+                option.selected = true;
+            }
+            
             monthDropdown.appendChild(option);
         }
 
@@ -111,6 +120,7 @@
                 });
             });
 
+            // 월 변경 시 차트 업데이트
             monthDropdown.addEventListener('change', (event) => {
                 fetchAndRenderOvertimeChart('monthly', event.target.value);
             });
