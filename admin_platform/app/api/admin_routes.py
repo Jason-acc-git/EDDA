@@ -49,20 +49,24 @@ def settings_page(
     start_date = settings_result[1] if settings_result else None
     end_date = settings_result[2] if settings_result else None
 
-    pdf_approver_result = db.execute(text("SELECT value FROM settings WHERE key = 'pdf_approver'")).fetchone()
-    pdf_approver = pdf_approver_result[0] if pdf_approver_result else None
+    response_data = {
+        "request": request,
+        "current_user": current_user,
+        "max_overtime_hours": max_overtime_hours,
+        "start_date": start_date,
+        "end_date": end_date
+    }
+    
+    # admin 권한일 때만 문서 승인자 설정 데이터 추가
+    if current_user.role == "admin":
+        pdf_approver_result = db.execute(text("SELECT value FROM settings WHERE key = 'pdf_approver'")).fetchone()
+        pdf_approver = pdf_approver_result[0] if pdf_approver_result else None
+        employees = db.execute(text("SELECT name FROM employees WHERE role IN ('admin', 'manager', 'lead')")).fetchall()
+        
+        response_data["pdf_approver"] = pdf_approver
+        response_data["employees"] = employees
 
-    employees = db.execute(text("SELECT name FROM employees WHERE role IN ('admin', 'manager', 'lead')")).fetchall()
-
-    return templates.TemplateResponse("settings.html", {
-        "request": request, 
-        "current_user": current_user, 
-        "max_overtime_hours": max_overtime_hours, 
-        "start_date": start_date, 
-        "end_date": end_date,
-        "pdf_approver": pdf_approver,
-        "employees": employees
-    })
+    return templates.TemplateResponse("settings.html", response_data)
 
 @router.post("/settings")
 def update_settings(
@@ -74,14 +78,16 @@ def update_settings(
     end_date: str = Form(None),
     pdf_approver: str = Form(None)
 ):
+    # 시간외 근무 설정 업데이트 (모든 권한)
     db.execute(text("UPDATE settings SET value = :value, start_date = :start_date, end_date = :end_date WHERE key = 'max_overtime_hours'"), {"value": max_overtime_hours, "start_date": start_date, "end_date": end_date})
     
-    # Update or Insert PDF approver setting
-    approver_setting = db.execute(text("SELECT 1 FROM settings WHERE key = 'pdf_approver'")).fetchone()
-    if approver_setting:
-        db.execute(text("UPDATE settings SET value = :value WHERE key = 'pdf_approver'"), {"value": pdf_approver})
-    else:
-        db.execute(text("INSERT INTO settings (key, value) VALUES ('pdf_approver', :value)"), {"value": pdf_approver})
+    # admin 권한일 때만 문서 승인자 설정 업데이트
+    if current_user.role == "admin":
+        approver_setting = db.execute(text("SELECT 1 FROM settings WHERE key = 'pdf_approver'")).fetchone()
+        if approver_setting:
+            db.execute(text("UPDATE settings SET value = :value WHERE key = 'pdf_approver'"), {"value": pdf_approver})
+        else:
+            db.execute(text("INSERT INTO settings (key, value) VALUES ('pdf_approver', :value)"), {"value": pdf_approver})
 
     db.commit()
     return RedirectResponse(url="/settings", status_code=303)
