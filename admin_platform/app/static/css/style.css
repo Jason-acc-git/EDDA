@@ -331,22 +331,56 @@ label {
 
 /* 로고 애니메이션 */
 @keyframes moveLeftRight {
-    0% { transform: translateX(0); }
-    25% { transform: translateX(100px); }
-    50% { transform: translateX(300px); }
-    75% { transform: translateX(100px); }
-    100% { transform: translateX(0); }
+    /* 왼쪽 끝에서 시작 */
+    0% { transform: translateX(0%) rotate(0deg); }
+    
+    /* 오른쪽으로 이동하면서 시계방향으로 회전 (0% → 40%) */
+    10% { transform: translateX(25%) rotate(45deg); }
+    20% { transform: translateX(50%) rotate(90deg); }
+    30% { transform: translateX(75%) rotate(135deg); }
+    
+    /* 오른쪽 끝에 도달하고 머무름 */
+    40% { transform: translateX(100%) rotate(180deg); }
+    50% { transform: translateX(100%) rotate(180deg); }
+    
+    /* 왼쪽으로 이동하면서 반시계방향으로 회전 (50% → 100%) */
+    60% { transform: translateX(75%) rotate(135deg); }
+    70% { transform: translateX(50%) rotate(90deg); }
+    80% { transform: translateX(25%) rotate(45deg); }
+    
+    /* 다시 왼쪽 끝으로 돌아옴 */
+    90% { transform: translateX(0%) rotate(0deg); }
+    100% { transform: translateX(0%) rotate(0deg); }
 }
 
 .animated-logo {
-    animation: moveLeftRight 5s ease-in-out infinite !important;
+    animation: moveLeftRight 15s ease-in-out infinite !important;
     position: relative !important;
     z-index: 10 !important;
     display: inline-block !important;
+    transform-origin: center !important;
+    width: 80px !important;
+    height: 80px !important;
 }
 
-/* 로고 컨테이너에 오버플로우 숨김 처리 */
+/* 로고 컨테이너 설정 */
 .logo-container {
     overflow: visible !important;
     position: relative !important;
+    width: 100% !important;
+    display: flex !important;
+    justify-content: space-between !important;
+}
+
+/* 로고 애니메이션 영역 설정 */
+.logo-animation-area {
+    width: calc(100% - 300px) !important; /* span 요소 앞까지의 공간 */
+    position: relative !important;
+    overflow: visible !important;
+}
+
+/* 사용자 정보 영역 */
+.user-info {
+    display: flex !important;
+    align-items: center !important;
 }

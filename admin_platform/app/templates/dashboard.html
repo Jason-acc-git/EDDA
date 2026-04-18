@@ -3,10 +3,14 @@
 {% block title %}대시보드{% endblock %}
 
 {% block content %}
-    <div class="d-flex justify-content-end align-items-center mb-3 logo-container">
-        <img src="/static/images/merged-4.gif" alt="Logo" style="width: 80px; height: 80px; animation: moveLeftRight 5s ease-in-out infinite;" class="animated-logo">
-        <span class="me-2"><strong>{{ current_user.name }}</strong> ({{ current_user.role }})님, 환영합니다.</span>
-        <a href="/logout" class="btn btn-sm btn-secondary">로그아웃</a>
+    <div class="d-flex justify-content-between align-items-center mb-3 logo-container">
+        <div class="logo-animation-area">
+            <img src="/static/images/merged-4.gif" alt="Logo" class="animated-logo">
+        </div>
+        <div class="user-info">
+            <span class="me-2"><strong>{{ current_user.name }}</strong> ({{ current_user.role }})님, 환영합니다.</span>
+            <a href="/logout" class="btn btn-sm btn-secondary">로그아웃</a>
+        </div>
     </div>
 
     <div class="card p-4 mb-4">
@@ -101,7 +105,12 @@
                             {% if '승인 대기' in r.status or r.status == '재신청' %}
                                 <a href="/request/edit/{{ r.id }}" class="btn btn-sm btn-outline-primary" style="color: #198754;">수정</a>
                             {% elif r.status == "approved" %}
-                                <a href="/admin-dashboard/pdf/{{ r.id }}" class="btn btn-sm btn-pdf">PDF</a>
+                                {% set content = r.content | fromjson %}
+                                {% if r.type == '대휴 사용' or r.type == '대휴신청' or (r.type == '시간외 근무' and content.compensation == '대체휴가') %}
+                                    -
+                                {% else %}
+                                    <a href="/admin-dashboard/pdf/{{ r.id }}" class="btn btn-sm btn-pdf">PDF</a>
+                                {% endif %}
                             {% elif r.status == "rejected" %}
                                 <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#rejectionModal" data-reason="{{ r.reject_reason }}" data-edit-url="/request/edit/{{ r.id }}">
                                     반려
