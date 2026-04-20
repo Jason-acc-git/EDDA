@@ -353,12 +353,22 @@ label {
     100% { transform: translateX(0%) rotate(0deg); }
 }
 
-.animated-logo {
+/* 대시보드 페이지에서만 로고 애니메이션 적용 */
+body:has(.dashboard-page) .animated-logo {
     animation: moveLeftRight 5s linear infinite !important;
     position: relative !important;
     z-index: 10 !important;
     display: inline-block !important;
     transform-origin: center !important;
+    width: 80px !important;
+    height: 80px !important;
+}
+
+/* 다른 페이지에서는 로고 애니메이션 비활성화 */
+.animated-logo {
+    position: relative !important;
+    z-index: 10 !important;
+    display: inline-block !important;
     width: 80px !important;
     height: 80px !important;
 }
