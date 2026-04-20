@@ -719,105 +719,119 @@ def export_to_excel(
 #     return StreamingResponse(output, media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", headers=headers)
 
 def download_pdf(request_id: int, db: Session, current_user: User) -> bytes:
-    print(f"--- Generating PDF for request_id: {request_id} ---")
-    request_data_result = db.execute(text("SELECT * FROM requests WHERE id = :id"), {"id": request_id}).fetchone()
+    try:
+        print(f"--- Generating PDF for request_id: {request_id} ---")
+        request_data_result = db.execute(text("SELECT * FROM requests WHERE id = :id"), {"id": request_id}).fetchone()
 
-    if not request_data_result:
-        print("!!! Request not found")
-        raise HTTPException(status_code=404, detail="Request not found")
+        if not request_data_result:
+            print("!!! Request not found")
+            raise HTTPException(status_code=404, detail="Request not found")
 
-    request_data = dict(request_data_result._mapping)
-    print(f"Request Data: {request_data}")
+        request_data = dict(request_data_result._mapping)
+        print(f"Request Data: {request_data}")
 
-    request_content_str = request_data.get('content', '{}')
-    request_content = json.loads(request_content_str)
+        request_content_str = request_data.get('content', '{}')
+        request_content = json.loads(request_content_str)
+        print(f"Request Content: {request_content}")
 
-    if request_data.get('type') == '시간외 근무' and request_content.get('compensation') == '대체휴가':
-        return None # 대체휴가는 PDF 생성 안함
+        if request_data.get('type') == '시간외 근무' and request_content.get('compensation') == '대체휴가':
+            return None # 대체휴가는 PDF 생성 안함
 
-    # Determine the approver for the PDF
-    pdf_approver_setting = db.execute(text("SELECT value FROM settings WHERE key = 'pdf_approver'")).fetchone()
-    
-    approver_name = None
-    if pdf_approver_setting and pdf_approver_setting[0]:
-        approver_name = pdf_approver_setting[0]
-    else:
-        approver_name = request_data.get('approver')
+        # Determine the approver for the PDF
+        pdf_approver_setting = db.execute(text("SELECT value FROM settings WHERE key = 'pdf_approver'")).fetchone()
+        
+        approver_name = None
+        if pdf_approver_setting and pdf_approver_setting[0]:
+            approver_name = pdf_approver_setting[0]
+        else:
+            approver_name = request_data.get('approver')
 
-    signature_data = None
-    approver_position = "(미지정)"
+        if not approver_name:
+            approver_name = "관리자"
+            print("!!! No approver found, using default")
 
-    if approver_name:
-        approver_info_result = db.execute(text("SELECT signature, position FROM employees WHERE name = :name"), {"name": approver_name}).fetchone()
-        if approver_info_result:
-            approver_info_mapping = dict(approver_info_result._mapping)
-            print(f"Approver Info: {approver_info_mapping}")
-            signature_data = approver_info_mapping.get('signature')
-            approver_position = approver_info_mapping.get('position', '(미지정)')
+        signature_data = None
+        approver_position = "(미지정)"
 
-    buffer = BytesIO()
-    doc = SimpleDocTemplate(buffer, pagesize=letter)
-    story = []
-    styles = getSampleStyleSheet()
-    styles['h1'].fontName = 'AppleGothic'
-    styles['h1'].alignment = TA_CENTER
-    styles['Normal'].fontName = 'AppleGothic'
-    styles['Normal'].fontSize = 12
+        if approver_name:
+            approver_info_result = db.execute(text("SELECT signature, position FROM employees WHERE name = :name"), {"name": approver_name}).fetchone()
+            if approver_info_result:
+                approver_info_mapping = dict(approver_info_result._mapping)
+                print(f"Approver Info: {approver_info_mapping}")
+                signature_data = approver_info_mapping.get('signature')
+                approver_position = approver_info_mapping.get('position', '(미지정)')
 
-    title = request_data.get('type', '문서')
-    story.append(Paragraph(f"{title} 승인 확인서", styles['h1']))
-    story.append(Spacer(1, 24))
+        buffer = BytesIO()
+        doc = SimpleDocTemplate(buffer, pagesize=letter)
+        story = []
+        styles = getSampleStyleSheet()
+        styles['h1'].fontName = 'AppleGothic'
+        styles['h1'].alignment = TA_CENTER
+        styles['Normal'].fontName = 'AppleGothic'
+        styles['Normal'].fontSize = 12
 
-    request_data_list = [[Paragraph(f"<b>신청자:</b> {request_data['name']}", styles['Normal'])], [Paragraph(f"<b>신청일:</b> {request_data['created'].split(' ')[0]}", styles['Normal'])]]
-    key_map = {
-        "work_type": "근무 유형", "work_date": "근무일", "work_hours_weekday": "평일 근무시간",
-        "work_hours_holiday": "휴일 근무시간", "reason_type": "신청 사유", "reason_detail": "상세 사유",
-        "work_location": "근무 장소", "compensation": "보상 유형", "course_title": "수강 항목",
-        "purpose": "목적", "course_content": "수강 내용", "cost": "비용", "start_date": "시작일",
-        "end_date": "종료일", "reference_site": "참고 사이트", "region": "출장 지역",
-        "organization": "출장 기관", "transport": "이동 수단", "hours": "사용 시간"
-    }
-    for key, value in request_content.items():
-        if key in key_map:
-            request_data_list.append([Paragraph(f"<b>{key_map[key]}:</b> {value}", styles['Normal'])])
+        title = request_data.get('type', '문서')
+        story.append(Paragraph(f"{title} 승인 확인서", styles['h1']))
+        story.append(Spacer(1, 24))
 
-    request_table = Table(request_data_list, hAlign='LEFT')
-    request_table.setStyle(TableStyle([
-        ('FONTNAME', (0, 0), (-1, -1), 'AppleGothic'),
-        ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
-    ]))
-    story.append(request_table)
-    story.append(Spacer(1, 48))
+        request_data_list = [[Paragraph(f"<b>신청자:</b> {request_data['name']}", styles['Normal'])], [Paragraph(f"<b>신청일:</b> {request_data['created'].split(' ')[0]}", styles['Normal'])]]
+        key_map = {
+            "work_type": "근무 유형", "work_date": "근무일", "work_hours_weekday": "평일 근무시간",
+            "work_hours_holiday": "휴일 근무시간", "reason_type": "신청 사유", "reason_detail": "상세 사유",
+            "work_location": "근무 장소", "compensation": "보상 유형", "course_title": "수강 항목",
+            "purpose": "목적", "purpose_other": "목적 (기타)", "course_content": "수강 내용", "cost": "비용",
+            "start_date": "시작일", "end_date": "종료일", "reference_site": "참고 사이트",
+            "region": "출장 지역", "region_other": "출장 지역 (기타)", "organization": "출장 기관",
+            "transport": "이동 수단", "hours": "사용 시간"
+        }
+        
+        for key, value in request_content.items():
+            if key in key_map and value:  # None이나 빈 문자열이 아닌 경우에만 추가
+                display_value = str(value)
+                request_data_list.append([Paragraph(f"<b>{key_map[key]}:</b> {display_value}", styles['Normal'])])
 
-    story.append(Paragraph("상기 신청을 승인합니다.", styles['Normal']))
-    story.append(Spacer(1, 24))
+        request_table = Table(request_data_list, hAlign='LEFT')
+        request_table.setStyle(TableStyle([
+            ('FONTNAME', (0, 0), (-1, -1), 'AppleGothic'),
+            ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+        ]))
+        story.append(request_table)
+        story.append(Spacer(1, 48))
 
-    story.append(Paragraph(f"<b>승인 날짜:</b> {request_data['created'].split(' ')[0]}", styles['Normal']))
-    story.append(Spacer(1, 12))
-    story.append(Paragraph(f"<b>승인자:</b> {approver_position} {approver_name}", styles['Normal']))
+        story.append(Paragraph("상기 신청을 승인합니다.", styles['Normal']))
+        story.append(Spacer(1, 24))
 
-    if signature_data:
-        print("Signature data found, attempting to process.")
-        try:
-            img_file = BytesIO(signature_data)
-            pil_img = PILImage.open(img_file)
-            pil_img.verify()
-            img_file.seek(0)
-            story.append(Image(img_file, width=50, height=50, hAlign='LEFT'))
-            print("Successfully added signature image to story.")
-        except Exception as e:
-            print(f"!!! Could not process signature image: {e}")
-    else:
-        print("!!! No signature data found for approver.")
+        story.append(Paragraph(f"<b>승인 날짜:</b> {request_data['created'].split(' ')[0]}", styles['Normal']))
+        story.append(Spacer(1, 12))
+        story.append(Paragraph(f"<b>승인자:</b> {approver_position} {approver_name}", styles['Normal']))
 
-    if not story:
-        print("!!! Story is empty, cannot build PDF.")
-        return HTMLResponse(content="PDF 생성에 실패했습니다: 내용이 없습니다.", status_code=500)
+        if signature_data:
+            print("Signature data found, attempting to process.")
+            try:
+                img_file = BytesIO(signature_data)
+                pil_img = PILImage.open(img_file)
+                pil_img.verify()
+                img_file.seek(0)
+                story.append(Image(img_file, width=50, height=50, hAlign='LEFT'))
+                print("Successfully added signature image to story.")
+            except Exception as e:
+                print(f"!!! Could not process signature image: {e}")
+        else:
+            print("!!! No signature data found for approver.")
 
-    print(f"Final story length: {len(story)}")
-    doc.build(story)
-    buffer.seek(0)
-    return buffer.read()
+        if not story:
+            print("!!! Story is empty, cannot build PDF.")
+            raise HTTPException(status_code=500, detail="PDF 생성에 실패했습니다: 내용이 없습니다.")
+
+        print(f"Final story length: {len(story)}")
+        doc.build(story)
+        buffer.seek(0)
+        return buffer.read()
+    except Exception as e:
+        print(f"!!! Error generating PDF: {e}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"PDF 생성 중 오류가 발생했습니다: {str(e)}")
 
 @router.get("/admin-dashboard/pdf/{request_id}")
 def download_pdf_route(request_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
@@ -831,7 +845,17 @@ def download_pdf_route(request_id: int, db: Session = Depends(get_db), current_u
     if not pdf_content:
         return HTMLResponse(content="<script>alert('대체휴가 신청은 PDF를 생성하지 않습니다.'); window.history.back();</script>")
 
-    return HTMLResponse(content=pdf_content, media_type="application/pdf")
+    from fastapi.responses import StreamingResponse
+    from io import BytesIO
+    
+    buffer = BytesIO(pdf_content)
+    buffer.seek(0)
+    
+    return StreamingResponse(
+        buffer,
+        media_type="application/pdf",
+        headers={"Content-Disposition": f"attachment; filename=document-{request_id}.pdf"}
+    )
 
 @router.get("/reject/cancel/{request_id}")
 def cancel_rejection(request_id: int, db: Session = Depends(get_db), current_user: User = Depends(require_role(["admin", "manager"]))):
