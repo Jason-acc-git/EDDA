@@ -1,0 +1,63 @@
+from datetime import datetime, timedelta
+from fastapi import FastAPI, Request, Form, Depends
+from fastapi.responses import RedirectResponse, HTMLResponse, JSONResponse
+from fastapi.staticfiles import StaticFiles
+import json
+from sqlalchemy.orm import Session
+from sqlalchemy import text
+import os
+from jinja2 import Environment, FileSystemLoader
+
+from .api import employee_routes, request_routes, admin_routes
+from .db.database import init_db, get_db
+from .models.schemas import User
+from .services.auth_service import (
+    verify_password, create_access_token, get_current_user, get_password_hash, ACCESS_TOKEN_EXPIRE_MINUTES
+)
+
+app = FastAPI()
+
+# 템플릿 설정
+template_dir = os.path.join(os.path.dirname(__file__), "templates")
+jinja_env = Environment(loader=FileSystemLoader(template_dir), cache_size=0, auto_reload=True)
+jinja_env.filters['fromjson'] = json.loads
+jinja_env.filters['to_datetime'] = lambda s: datetime.strptime(s, '%Y-%m-%d') if s else None
+
+app.mount("/static", StaticFiles(directory="app/static"), name="static")
+
+@app.on_event("startup")
+def startup():
+    init_db()
+
+def render_template(template_name: str, context: dict):
+    template = jinja_env.get_template(template_name)
+    html_content = template.render(context)
+    return HTMLResponse(content=html_content)
+
+# 기존 함수들 (home, login 등)
+@app.get("/")
+def home(request: Request, db: Session = Depends(get_db)):
+    employees_result = db.execute(text("SELECT name FROM employees")).fetchall()
+    employees = [row[0] for row in employees_result]
+    message = request.query_params.get('message')
+    return render_template("home.html", {"request": request, "employees": employees, "message": message})
+
+# ... (login 함수들)
+
+@app.get("/dashboard", response_class=HTMLResponse)
+def dashboard(request: Request, page: int = 1, db: Session = Depends(get_db), current_user: User = Depends(get_current_user, use_cache=False)):
+    return render_template("dashboard.html", {
+        "request": request, 
+        "requests": [], 
+        "current_user": current_user,
+        "monthly_overtime": 0,
+        "remaining_compensatory_hours": 0,
+        "remaining_dev_cost": 2000000,
+        "page": 1,
+        "total_pages": 1,
+        "pending_approvals": 0
+    })
+
+app.include_router(employee_routes.router)
+app.include_router(request_routes.router)
+app.include_router(admin_routes.router)

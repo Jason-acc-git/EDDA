@@ -39,7 +39,7 @@ def compensatory_leave_form(request: Request, db: Session = Depends(get_db), cur
 
     remaining_hours = total_compensatory_hours - used_compensatory_hours
 
-    return render_template("compensatory_leave_form.html", {"request": request, "remaining_hours": remaining_hours, "current_user": current_user})
+    return templates.TemplateResponse("compensatory_leave_form.html", {"request": request, "remaining_hours": remaining_hours, "current_user": current_user})
 
 @router.get("/request/overtime", response_class=HTMLResponse)
 def overtime_page(request: Request, db: Session = Depends(get_db), current_user: User = Depends(get_current_user, use_cache=False)):
@@ -56,11 +56,11 @@ def overtime_page(request: Request, db: Session = Depends(get_db), current_user:
 
     remaining_overtime = max_overtime_hours - used_overtime
 
-    return render_template("overtime_form.html", {"request": request, "current_user": current_user, "remaining_overtime": remaining_overtime, "max_overtime_hours": max_overtime_hours})
+    return templates.TemplateResponse("overtime_form.html", {"request": request, "current_user": current_user, "remaining_overtime": remaining_overtime, "max_overtime_hours": max_overtime_hours})
 
 @router.get("/request/business-trip", response_class=HTMLResponse)
 def business_trip_form(request: Request, current_user: User = Depends(get_current_user, use_cache=False)):
-    return render_template("business_trip_form.html", {"request": request, "current_user": current_user})
+    return templates.TemplateResponse("business_trip_form.html", {"request": request, "current_user": current_user})
 
 @router.get("/request/self-development", response_class=HTMLResponse)
 def self_development_form(request: Request, db: Session = Depends(get_db), current_user: User = Depends(get_current_user, use_cache=False)):
@@ -70,7 +70,7 @@ def self_development_form(request: Request, db: Session = Depends(get_db), curre
     used_dev_cost = used_dev_cost_result[0] or 0
     remaining_dev_cost = 2000000 - used_dev_cost
 
-    return render_template("self_development_form.html", {"request": request, "current_user": current_user, "remaining_dev_cost": remaining_dev_cost})
+    return templates.TemplateResponse("self_development_form.html", {"request": request, "current_user": current_user, "remaining_dev_cost": remaining_dev_cost})
 
 # --- Form Submissions ---
 @router.post("/request/compensatory-leave")
@@ -388,7 +388,7 @@ def approve_list(request: Request, db: Session = Depends(get_db), current_user: 
     total_count_result = db.execute(text("SELECT count(*) FROM requests")).fetchone()
     total_count = total_count_result[0]
 
-    return render_template("approve_list.html", {
+    return templates.TemplateResponse("approve_list.html", {
         "request": request, 
         "requests": paginated_requests, 
         "current_user": current_user, 
@@ -446,7 +446,7 @@ def approve_request(id: int, db: Session = Depends(get_db), current_user: User =
 
 @router.get("/reject")
 def reject_form(request: Request, id: int, current_user: User = Depends(require_role(["admin", "manager", "lead"]))):
-    return render_template("reject_form.html", {"request": request, "id": id, "current_user": current_user})
+    return templates.TemplateResponse("reject_form.html", {"request": request, "id": id, "current_user": current_user})
 
 @router.post("/reject")
 def reject_submit(id: int = Form(...), reason: str = Form(...), db: Session = Depends(get_db), current_user: User = Depends(require_role(["admin", "manager", "lead"]))):
@@ -510,10 +510,10 @@ def edit_request_form(request_id: int, request: Request, db: Session = Depends(g
         used_dev_cost_result = db.execute(text("SELECT SUM(cost) FROM requests WHERE name = :name AND type = '자기개발비' AND strftime('%Y', created) = :year AND status = 'approved' AND id != :request_id"), {"name": current_user.name, "year": current_year, "request_id": request_id}).fetchone()
         used_dev_cost = used_dev_cost_result[0] or 0
         remaining_dev_cost = 2000000 - used_dev_cost
-        return render_template(template_name, {"request": request, "request_data": request_data, "current_user": current_user, "remaining_dev_cost": remaining_dev_cost})
+        return templates.TemplateResponse(template_name, {"request": request, "request_data": request_data, "current_user": current_user, "remaining_dev_cost": remaining_dev_cost})
 
     print(request_data)
-    return render_template(template_name, {"request": request, "request_data": request_data, "current_user": current_user})
+    return templates.TemplateResponse(template_name, {"request": request, "request_data": request_data, "current_user": current_user})
 
 @router.post("/request/edit/overtime/{request_id}")
 async def update_overtime_request(
@@ -789,24 +789,3 @@ def update_self_development_request(
 
 
 
-
-# 템플릿 렌더링 함수 (캐시 없음)
-import os
-from jinja2 import Environment, FileSystemLoader
-import json
-from datetime import datetime
-from fastapi.responses import HTMLResponse
-
-template_dir = os.path.join(os.path.dirname(__file__), "..", "templates")
-jinja_env = Environment(
-    loader=FileSystemLoader(template_dir),
-    cache_size=0,
-    auto_reload=True
-)
-jinja_env.filters['fromjson'] = json.loads
-jinja_env.filters['to_datetime'] = lambda s: datetime.strptime(s, '%Y-%m-%d') if s else None
-
-def render_template(template_name: str, context: dict):
-    template = jinja_env.get_template(template_name)
-    html_content = template.render(context)
-    return HTMLResponse(content=html_content)

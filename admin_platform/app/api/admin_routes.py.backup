@@ -66,7 +66,7 @@ def settings_page(
         response_data["pdf_approver"] = pdf_approver
         response_data["employees"] = employees
 
-    return render_template("settings.html", response_data)
+    return templates.TemplateResponse("settings.html", response_data)
 
 @router.post("/settings")
 def update_settings(
@@ -97,7 +97,7 @@ def stats_page(
     request: Request,
     current_user: User = Depends(require_role(["admin", "manager", "lead"], use_cache=False))
 ):
-    return render_template("stats.html", {"request": request, "current_user": current_user})
+    return templates.TemplateResponse("stats.html", {"request": request, "current_user": current_user})
 
 @router.get("/api/stats/employee-status")
 def get_employee_status(db: Session = Depends(get_db), current_user: User = Depends(require_role(["admin", "manager", "lead"], use_cache=False))):
@@ -292,7 +292,7 @@ def admin_dashboard(
     approved_count = db.execute(text("SELECT count(*) FROM requests WHERE status = 'approved'")).scalar_one()
     rejected_count = db.execute(text("SELECT count(*) FROM requests WHERE status = 'rejected'")).scalar_one()
 
-    return render_template(
+    return templates.TemplateResponse(
         "admin_dashboard.html",
         {
             "request": request,
@@ -871,24 +871,3 @@ def cancel_rejection(request_id: int, db: Session = Depends(get_db), current_use
     })
     db.commit()
     return RedirectResponse(url="/approve-list", status_code=303)
-
-# 템플릿 렌더링 함수 (캐시 없음)
-import os
-from jinja2 import Environment, FileSystemLoader
-import json
-from datetime import datetime
-from fastapi.responses import HTMLResponse
-
-template_dir = os.path.join(os.path.dirname(__file__), "..", "templates")
-jinja_env = Environment(
-    loader=FileSystemLoader(template_dir),
-    cache_size=0,
-    auto_reload=True
-)
-jinja_env.filters['fromjson'] = json.loads
-jinja_env.filters['to_datetime'] = lambda s: datetime.strptime(s, '%Y-%m-%d') if s else None
-
-def render_template(template_name: str, context: dict):
-    template = jinja_env.get_template(template_name)
-    html_content = template.render(context)
-    return HTMLResponse(content=html_content)

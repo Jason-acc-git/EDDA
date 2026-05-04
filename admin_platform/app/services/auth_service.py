@@ -13,11 +13,24 @@ from ..core.config import settings
 # --- 비밀번호 처리 ---
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-def verify_password(plain_password: str, hashed_password: str) -> bool:
+#수정 	def verify_password(plain_password: str, hashed_password: str) -> bool:
+#	    return pwd_context.verify(plain_password, hashed_password)
+
+#	def get_password_hash(password: str) -> str:
+#   	 return pwd_context.hash(password)
+
+def verify_password(plain_password, hashed_password):
+    # 비밀번호를 72바이트로 제한 (bcrypt 제한사항)
+    if len(plain_password.encode('utf-8')) > 72:
+        plain_password = plain_password.encode('utf-8')[:72].decode('utf-8', errors='ignore')
     return pwd_context.verify(plain_password, hashed_password)
 
-def get_password_hash(password: str) -> str:
+def get_password_hash(password):
+    # 비밀번호를 72바이트로 제한 (bcrypt 제한사항)
+    if len(password.encode('utf-8')) > 72:
+        password = password.encode('utf-8')[:72].decode('utf-8', errors='ignore')
     return pwd_context.hash(password)
+
 
 # --- JWT 처리 ---
 SECRET_KEY = settings.SECRET_KEY

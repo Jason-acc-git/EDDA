@@ -15,11 +15,11 @@ templates = Jinja2Templates(directory="app/templates")
 @router.get("/employee/list")
 def employee_list(request: Request, db: Session = Depends(get_db), current_user: User = Depends(require_role(["admin", "lead"]))):
     employees = db.execute(text("SELECT * FROM employees")).fetchall()
-    return render_template("employee_list.html", {"request": request, "employees": employees, "current_user": current_user})
+    return templates.TemplateResponse("employee_list.html", {"request": request, "employees": employees, "current_user": current_user})
 
 @router.get("/employee/manage")
 def employee_manage_form(request: Request, current_user: User = Depends(require_role(["admin", "lead"]))):
-    return render_template("employee_manage.html", {"request": request, "current_user": current_user})
+    return templates.TemplateResponse("employee_manage.html", {"request": request, "current_user": current_user})
 
 @router.post("/employee/manage")
 def handle_employee_manage(name: str = Form(...), emp_no: str = Form(...), dept: str = Form(...), position: str = Form(...), work_type: str = Form(...), role: str = Form(...), email: str = Form(...), signature: UploadFile = File(None), db: Session = Depends(get_db), current_user: User = Depends(require_role(["admin", "lead"]))):
@@ -37,7 +37,7 @@ def handle_employee_manage(name: str = Form(...), emp_no: str = Form(...), dept:
 @router.get("/employee/edit")
 def employee_edit_form(request: Request, id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user, use_cache=False)):
     employee = db.execute(text("SELECT * FROM employees WHERE id = :id"), {"id": id}).fetchone()
-    return render_template("employee_edit.html", {"request": request, "employee": employee, "current_user": current_user})
+    return templates.TemplateResponse("employee_edit.html", {"request": request, "employee": employee, "current_user": current_user})
 
 @router.post("/employee/edit")
 def handle_employee_edit(id: int = Form(...), name: str = Form(...), emp_no: str = Form(...), dept: str = Form(...), position: str = Form(...), work_type: str = Form(...), role: str = Form(...), email: str = Form(...), signature: UploadFile = File(None), db: Session = Depends(get_db), current_user: User = Depends(require_role(["admin", "lead"]))):
@@ -68,24 +68,3 @@ def employee_delete(id: int, db: Session = Depends(get_db), current_user: User =
     db.execute(text("DELETE FROM employees WHERE id = :id"), {"id": id})
     db.commit()
     return RedirectResponse(url="/employee/list", status_code=303)
-
-# 템플릿 렌더링 함수 (캐시 없음)
-import os
-from jinja2 import Environment, FileSystemLoader
-import json
-from datetime import datetime
-from fastapi.responses import HTMLResponse
-
-template_dir = os.path.join(os.path.dirname(__file__), "..", "templates")
-jinja_env = Environment(
-    loader=FileSystemLoader(template_dir),
-    cache_size=0,
-    auto_reload=True
-)
-jinja_env.filters['fromjson'] = json.loads
-jinja_env.filters['to_datetime'] = lambda s: datetime.strptime(s, '%Y-%m-%d') if s else None
-
-def render_template(template_name: str, context: dict):
-    template = jinja_env.get_template(template_name)
-    html_content = template.render(context)
-    return HTMLResponse(content=html_content)
