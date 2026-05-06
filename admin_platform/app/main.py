@@ -6,6 +6,21 @@ import json
 from sqlalchemy.orm import Session
 from sqlalchemy import text
 import os
+
+def get_pending_approvals_count():
+    """승인 대기 건수를 데이터베이스에서 가져오는 함수"""
+    try:
+        import sqlite3
+        conn = sqlite3.connect('admin.db')
+        cursor = conn.cursor()
+        cursor.execute("SELECT COUNT(*) FROM requests WHERE status LIKE '%대기' OR status = '재신청'")
+        count = cursor.fetchone()[0]
+        conn.close()
+        return count
+    except Exception as e:
+        print(f"승인 대기 건수 조회 오류: {e}")
+        return 0
+
 from jinja2 import Environment, FileSystemLoader
 
 from .api import employee_routes, request_routes, admin_routes
@@ -80,14 +95,14 @@ def login(request: Request, name: str = Form(...), password: str = Form(...), db
 def dashboard(request: Request, page: int = 1, db: Session = Depends(get_db), current_user: User = Depends(get_current_user, use_cache=False)):
     return render_template("dashboard.html", {
         "request": request, 
-        "requests": [], 
+        "requests": get_user_requests(current_user.name), 
         "current_user": current_user,
-        "monthly_overtime": 0,
-        "remaining_compensatory_hours": 0,
-        "remaining_dev_cost": 2000000,
+        "monthly_overtime": get_monthly_overtime_hours(current_user.name),
+        "remaining_compensatory_hours": get_remaining_compensatory_hours(current_user.name),
+        "remaining_dev_cost": get_remaining_dev_cost(current_user.name),
         "page": 1,
         "total_pages": 1,
-        "pending_approvals": 0
+        "pending_approvals": get_pending_approvals_count()
     })
 
 @app.get("/test")
@@ -210,3 +225,203 @@ def favicon():
 @app.get("/apple-touch-icon.png")
 def apple_touch_icon():
     return RedirectResponse(url="/static/images/apple-touch-icon.png")
+
+@app.get("/test/pending-count")
+def test_pending_count():
+    try:
+        import sqlite3
+        conn = sqlite3.connect('admin.db')
+        cursor = conn.cursor()
+        cursor.execute("SELECT COUNT(*) FROM requests WHERE status = 'manager 승인 대기'")
+        count = cursor.fetchone()[0]
+        conn.close()
+        return {"pending_count": count, "status": "success"}
+    except Exception as e:
+        return {"error": str(e), "status": "error"}
+
+@app.get("/test/user-requests/{user_name}")
+def test_user_requests(user_name: str):
+    try:
+        import sqlite3
+        conn = sqlite3.connect('admin.db')
+        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT id, name, type, content, status
+            FROM requests
+            WHERE name = ?
+            ORDER BY id DESC
+        """, (user_name,))
+        requests = cursor.fetchall()
+        conn.close()
+        return {"user_name": user_name, "requests": requests, "count": len(requests)}
+    except Exception as e:
+        return {"error": str(e)}
+
+@app.get("/test/all-requests")
+def test_all_requests():
+    try:
+        import sqlite3
+        conn = sqlite3.connect('admin.db')
+        cursor = conn.cursor()
+        cursor.execute("SELECT id, name, type, content, status FROM requests ORDER BY id DESC")
+        requests = cursor.fetchall()
+        conn.close()
+        return {"requests": requests, "count": len(requests)}
+    except Exception as e:
+        return {"error": str(e)}
+
+
+
+
+def get_monthly_overtime_hours(user_name: str):
+    """이번 달 누적 시간외근무 시간 계산"""
+    try:
+        import sqlite3
+        import json
+        from datetime import datetime
+        
+        conn = sqlite3.connect('admin.db')
+        cursor = conn.cursor()
+        
+        # 이번 달 시작일과 종료일
+        today = datetime.now()
+        start_of_month = today.replace(day=1).strftime('%Y-%m-%d')
+        if today.month == 12:
+            end_of_month = today.replace(year=today.year+1, month=1, day=1).strftime('%Y-%m-%d')
+        else:
+            end_of_month = today.replace(month=today.month+1, day=1).strftime('%Y-%m-%d')
+        
+        cursor.execute("""
+            SELECT content FROM requests 
+            WHERE name = ? AND type = '시간외 근무' AND status = 'approved'
+            AND created BETWEEN ? AND ?
+        """, (user_name, start_of_month, end_of_month))
+        
+        total_hours = 0
+        for req in cursor.fetchall():
+            if req[0]:
+                content = json.loads(req[0])
+                total_hours += content.get('work_hours_weekday', 0) + content.get('work_hours_holiday', 0)
+        
+        conn.close()
+        return total_hours
+    except Exception as e:
+        print(f"월간 시간외근무 계산 오류: {e}")
+        return 0
+
+def get_remaining_compensatory_hours(user_name: str):
+    """남은 대휴 시간 계산"""
+    try:
+        import sqlite3
+        import json
+        
+        conn = sqlite3.connect('admin.db')
+        cursor = conn.cursor()
+        
+        # 승인된 시간외근무에서 대휴 시간 계산
+        cursor.execute("""
+            SELECT content FROM requests 
+            WHERE name = ? AND type = '시간외 근무' AND status = 'approved'
+        """, (user_name,))
+        
+        total_overtime_hours = 0
+        for req in cursor.fetchall():
+            if req[0]:
+                content = json.loads(req[0])
+                total_overtime_hours += content.get('calculated_compensatory_hours', 0)
+        
+        # 사용한 대휴 시간 계산
+        cursor.execute("""
+            SELECT content FROM requests 
+            WHERE name = ? AND type = '대휴신청' AND status = 'approved'
+        """, (user_name,))
+        
+        used_leave_hours = 0
+        for req in cursor.fetchall():
+            if req[0]:
+                content = json.loads(req[0])
+                used_leave_hours += content.get('hours', 0)
+        
+        conn.close()
+        return total_overtime_hours - used_leave_hours
+    except Exception as e:
+        print(f"대휴 시간 계산 오류: {e}")
+        return 0
+
+def get_remaining_dev_cost(user_name: str):
+    """자기개발비 잔액 계산"""
+    try:
+        import sqlite3
+        import json
+        
+        conn = sqlite3.connect('admin.db')
+        cursor = conn.cursor()
+        
+        cursor.execute("""
+            SELECT content FROM requests 
+            WHERE name = ? AND type = '자기개발비' AND status = 'approved'
+        """, (user_name,))
+        
+        used_dev_cost = 0
+        for req in cursor.fetchall():
+            if req[0]:
+                content = json.loads(req[0])
+                used_dev_cost += int(content.get('cost', '0'))
+        
+        conn.close()
+        return 2000000 - used_dev_cost
+    except Exception as e:
+        print(f"자기개발비 계산 오류: {e}")
+        return 2000000
+def get_user_requests(user_name: str):
+    """현재 사용자의 신청내역을 안전하게 가져오는 함수"""
+    try:
+        import sqlite3
+        import json
+        conn = sqlite3.connect('admin.db')
+        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT id, type, content, status, created, reject_reason
+            FROM requests
+            WHERE name = ?
+            ORDER BY id DESC
+            LIMIT 10
+        """, (user_name,))
+        raw_requests = cursor.fetchall()
+        conn.close()
+
+        # 안전한 데이터 변환
+        formatted_requests = []
+        for req in raw_requests:
+            # 실제 content 파싱 및 안전한 처리
+            try:
+                if req[2]:
+                    content = json.loads(req[2])
+                else:
+                    content = {}
+            except:
+                content = {}
+            
+            # 필수 필드들 안전하게 설정
+            safe_content = {
+                "start_date": content.get("start_date") or "2024-01-01",
+                "end_date": content.get("end_date") or "2024-01-01", 
+                "work_date": content.get("work_date") or "2024-01-01",
+                "leave_date": content.get("leave_date") or "2024-01-01"
+            }
+            
+            formatted_req = {
+                'id': req[0],
+                'type': req[1],
+                'content': json.dumps(safe_content),
+                'status': req[3],
+                'created': req[4] if req[4] else '2024-01-01 00:00:00',
+                'summary': f"{req[1]} 신청",
+                'reject_reason': req[5] if len(req) > 5 and req[5] else ''
+            }
+            formatted_requests.append(formatted_req)
+
+        return formatted_requests
+    except Exception as e:
+        print(f"사용자 신청내역 조회 오류: {e}")
+        return []

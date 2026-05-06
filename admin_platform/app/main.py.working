@@ -87,7 +87,7 @@ def dashboard(request: Request, page: int = 1, db: Session = Depends(get_db), cu
         "remaining_dev_cost": 2000000,
         "page": 1,
         "total_pages": 1,
-        "pending_approvals": 0
+        "pending_approvals": 2
     })
 
 @app.get("/test")

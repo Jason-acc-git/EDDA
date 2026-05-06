@@ -1,0 +1,52 @@
+Starting EDDA server...
+2026년  5월  5일 화요일 13시 45분 26초 KST: Starting uvicorn server
+INFO:     Started server process [38602]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [38602]
+./start_server.sh: line 8: 38602 Terminated: 15          python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --log-level debug
+2026년  5월  5일 화요일 13시 47분 32초 KST: Server stopped, restarting in 5 seconds...
+2026년  5월  5일 화요일 13시 47분 37초 KST: Starting uvicorn server
+INFO:     Started server process [38618]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+./start_server.sh: line 8: 38618 Killed: 9               python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --log-level debug
+2026년  5월  5일 화요일 13시 48분 18초 KST: Server stopped, restarting in 5 seconds...
+2026년  5월  5일 화요일 13시 48분 23초 KST: Starting uvicorn server
+INFO:     Started server process [38645]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+./start_server.sh: line 8: 38645 Killed: 9               python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --log-level debug
+2026년  5월  5일 화요일 13시 49분 52초 KST: Server stopped, restarting in 5 seconds...
+2026년  5월  5일 화요일 13시 49분 57초 KST: Starting uvicorn server
+./start_server.sh: line 8: 38675 Killed: 9               python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --log-level debug
+2026년  5월  5일 화요일 13시 49분 58초 KST: Server stopped, restarting in 5 seconds...
+2026년  5월  5일 화요일 13시 50분 03초 KST: Starting uvicorn server
+INFO:     Started server process [38685]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+./start_server.sh: line 8: 38685 Killed: 9               python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --log-level debug
+2026년  5월  5일 화요일 13시 51분 15초 KST: Server stopped, restarting in 5 seconds...
+2026년  5월  5일 화요일 13시 51분 20초 KST: Starting uvicorn server
+INFO:     Started server process [38736]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+./start_server.sh: line 8: 38736 Killed: 9               python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --log-level debug
+2026년  5월  5일 화요일 13시 51분 39초 KST: Server stopped, restarting in 5 seconds...
+2026년  5월  5일 화요일 13시 51분 44초 KST: Starting uvicorn server
+INFO:     Started server process [38744]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [38744]

@@ -107,7 +107,7 @@
                                 <a href="/request/edit/{{ r.id }}" class="btn btn-sm btn-outline-primary" style="color: #198754;">수정</a>
                             {% elif r.status == "approved" %}
                                 {% set content = r.content | fromjson %}
-                                {% if r.type == '대휴 사용' or r.type == '대휴신청' or (r.type == '시간외 근무' and content.compensation == '대체휴가') %}
+                                {% if r.type == '대휴 사용' or (r.type == '시간외 근무' and content.compensation == '대체휴가') %}
                                     -
                                 {% else %}
                                     <a href="/admin-dashboard/pdf/{{ r.id }}" class="btn btn-sm btn-pdf">PDF</a>

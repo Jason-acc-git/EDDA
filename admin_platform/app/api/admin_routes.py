@@ -210,7 +210,7 @@ def admin_dashboard(
         end_date = end_of_month.strftime("%Y-%m-%d")
 
     # Base query and params
-    base_query = "SELECT * FROM requests WHERE created BETWEEN :start_date AND :end_date"
+    base_query = "SELECT * FROM requests WHERE created BETWEEN :start_date AND :end_date AND (status LIKE '%대기' OR status = '재신청')"
     params = {"start_date": start_date, "end_date": end_date}
 
     if selected_name and selected_name != "all":

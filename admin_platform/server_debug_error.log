@@ -1,0 +1,11 @@
+INFO:     Will watch for changes in these directories: ['/Users/engineers/EDDA/admin_platform']
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+INFO:     Started reloader process [37423] using StatReload
+INFO:     Started server process [37425]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [37425]
+INFO:     Stopping reloader process [37423]
