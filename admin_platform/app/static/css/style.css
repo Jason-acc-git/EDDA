@@ -396,7 +396,7 @@ body:has(.dashboard-page) .animated-logo {
 }
 
 /* 대휴 신청 페이지 애니메이션 */
-@keyframes moveLeftRightNoRotate {
+/* @keyframes moveLeftRightNoRotate {
     0% { transform: translateX(0%); }
     10% { transform: translateX(40%); }
     20% { transform: translateX(80%); }
@@ -408,10 +408,23 @@ body:has(.dashboard-page) .animated-logo {
     80% { transform: translateX(80%); }
     90% { transform: translateX(40%); }
     100% { transform: translateX(0%); }
+} */
+ @keyframes moveLeftRightNoRotate {
+    0% { transform: translateX(0%); }
+    10% { transform: translateX(80%); }
+    20% { transform: translateX(160%); }
+    30% { transform: translateX(240%); }
+    40% { transform: translateX(320%); }
+    50% { transform: translateX(400%); }
+    60% { transform: translateX(320%); }
+    70% { transform: translateX(240%); }
+    80% { transform: translateX(160%); }
+    90% { transform: translateX(80%); }
+    100% { transform: translateX(0%); }
 }
 
 .compensatory-page .animated-gif {
-    animation: moveLeftRightNoRotate 2s linear infinite;
+    animation: moveLeftRightNoRotate 10s linear infinite;
     position: relative;
     display: inline-block;
     width: 50px;
