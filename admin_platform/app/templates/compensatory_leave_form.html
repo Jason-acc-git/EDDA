@@ -2,9 +2,39 @@
 
 {% block title %}대휴 신청{% endblock %}
 
+
+{% block extra_css %}
+<style>
+@keyframes moveLeftRightNoRotate {
+    0% { transform: translateX(0%); }
+    10% { transform: translateX(40%); }
+    20% { transform: translateX(80%); }
+    30% { transform: translateX(120%); }
+    40% { transform: translateX(160%); }
+    50% { transform: translateX(200%); }
+    60% { transform: translateX(160%); }
+    70% { transform: translateX(120%); }
+    80% { transform: translateX(80%); }
+    90% { transform: translateX(40%); }
+    100% { transform: translateX(0%); }
+}
+.animated-gif {
+    animation: moveLeftRightNoRotate 2s linear infinite;
+    position: relative;
+    display: inline-block;
+    width: 50px;
+    height: 50px;
+}
+    100% { transform: translateX(0%); }
+}
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+</style>
+{% endblock %}
 {% block content %}
-    <div class="card p-4 mx-auto" style="max-width: 600px;">
-        <h3 class="mb-4">대휴 신청</h3>
+    <div class="card p-4 mx-auto compensatory-page" style="max-width: 600px;">
+<h3 class="position-relative">대휴 신청<img src="/static/images/run.gif" alt="running" class="animated-gif" style="margin-left: 20px; width: 50px; height: 50px; max-width: 50px; max-height: 50px;"></h3>
         <div class="alert alert-light-yellow">남은 대휴 시간: {{ remaining_hours }}시간</div>
         <form action="{{ '/request/edit/compensatory-leave/' ~ request_data.id if request_data else '/request/compensatory-leave' }}" method="post" enctype="multipart/form-data">
             <div class="mb-3">
