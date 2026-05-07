@@ -734,8 +734,6 @@ def download_pdf(request_id: int, db: Session, current_user: User) -> bytes:
         request_content = json.loads(request_content_str)
         print(f"Request Content: {request_content}")
 
-        if request_data.get('type') == '시간외 근무' and request_content.get('compensation') == '대체휴가':
-            return None # 대체휴가는 PDF 생성 안함
 
         # Determine the approver for the PDF
         pdf_approver_setting = db.execute(text("SELECT value FROM settings WHERE key = 'pdf_approver'")).fetchone()
@@ -843,10 +841,7 @@ def download_pdf_route(request_id: int, db: Session = Depends(get_db), current_u
     
     pdf_content = download_pdf(request_id, db, current_user)
     if not pdf_content:
-        return HTMLResponse(content="<script>alert('대체휴가 신청은 PDF를 생성하지 않습니다.'); window.history.back();</script>")
-
-    from fastapi.responses import StreamingResponse
-    from io import BytesIO
+        raise HTTPException(status_code=404, detail="PDF를 생성할 수 없습니다.")
     
     buffer = BytesIO(pdf_content)
     buffer.seek(0)
