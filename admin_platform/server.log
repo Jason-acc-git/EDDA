@@ -26,3 +26,44 @@
 2026-05-08 10:25:51 [32mINFO[0m:     17.92.43.123:65530 - "[1mGET / HTTP/1.1[0m" [32m200 OK[0m
 2026-05-08 10:25:51 [32mINFO[0m:     17.92.43.123:65531 - "[1mGET /static/css/style.css?v=1.5 HTTP/1.1[0m" [33m304 Not Modified[0m
 2026-05-08 10:28:39 [32mINFO[0m:     17.92.43.197:51074 - "[1mGET / HTTP/1.1[0m" [32m200 OK[0m
+2026-05-08 10:39:20 [32mINFO[0m:     17.92.43.132:60109 - "[1mGET /request/overtime HTTP/1.1[0m" [31m401 Unauthorized[0m
+2026-05-08 10:39:23 [32mINFO[0m:     17.92.43.132:60109 - "[1mGET /logout HTTP/1.1[0m" [33m303 See Other[0m
+2026-05-08 10:39:23 [32mINFO[0m:     17.92.43.132:60109 - "[1mGET /?message=%EC%95%88%EC%A0%84%ED%95%98%EA%B2%8C+%EB%A1%9C%EA%B7%B8%EC%95%84%EC%9B%83%EB%90%98%EC%97%88%EC%8A%B5%EB%8B%88%EB%8B%A4. HTTP/1.1[0m" [32m200 OK[0m
+2026-05-08 10:39:23 [32mINFO[0m:     17.92.43.132:60109 - "[1mGET /static/css/style.css?v=1.5 HTTP/1.1[0m" [33m304 Not Modified[0m
+2026-05-08 10:39:28 [32mINFO[0m:     17.92.43.132:60110 - "[1mPOST /login HTTP/1.1[0m" [33m303 See Other[0m
+2026-05-08 10:39:28 [32mINFO[0m:     17.92.43.132:60110 - "[1mGET /dashboard HTTP/1.1[0m" [32m200 OK[0m
+2026-05-08 10:39:28 [32mINFO[0m:     17.92.43.132:60110 - "[1mGET /static/css/style.css?v=2.4 HTTP/1.1[0m" [33m304 Not Modified[0m
+2026-05-08 10:39:30 [32mINFO[0m:     17.92.43.132:60110 - "[1mGET /request/overtime HTTP/1.1[0m" [32m200 OK[0m
+2026-05-08 10:39:30 [32mINFO[0m:     17.92.43.132:60110 - "[1mPOST /request/overtime/calculate HTTP/1.1[0m" [32m200 OK[0m
+2026-05-08 10:39:51 [32mINFO[0m:     17.92.43.132:60112 - "[1mGET /dashboard HTTP/1.1[0m" [32m200 OK[0m
+2026-05-08 10:40:07 [32mINFO[0m:     17.92.43.132:60123 - "[1mGET /request/business-trip HTTP/1.1[0m" [32m200 OK[0m
+2026-05-08 10:40:07 [32mINFO[0m:     17.92.43.132:60123 - "[1mGET /static/css/style.css?v=2.4 HTTP/1.1[0m" [32m200 OK[0m
+2026-05-08 10:40:07 [32mINFO[0m:     17.92.43.132:60180 - "[1mGET /static/manifest.json HTTP/1.1[0m" [32m200 OK[0m
+2026-05-08 10:40:11 [32mINFO[0m:     17.92.43.132:60123 - "[1mGET /request/compensatory-leave HTTP/1.1[0m" [32m200 OK[0m
+2026-05-08 10:40:11 [32mINFO[0m:     17.92.43.132:60123 - "[1mGET /static/css/style.css?v=2.4 HTTP/1.1[0m" [32m200 OK[0m
+2026-05-08 10:40:11 [32mINFO[0m:     17.92.43.132:60179 - "[1mGET /static/images/run.gif HTTP/1.1[0m" [32m200 OK[0m
+2026-05-08 10:40:11 [32mINFO[0m:     17.92.43.132:60180 - "[1mGET /static/manifest.json HTTP/1.1[0m" [32m200 OK[0m
+2026-05-08 10:40:54 [32mINFO[0m:     17.92.43.132:60374 - "[1mGET /request/compensatory-leave HTTP/1.1[0m" [32m200 OK[0m
+2026-05-08 10:41:46 [32mINFO[0m:     17.92.43.132:60375 - "[1mGET /dashboard HTTP/1.1[0m" [32m200 OK[0m
+2026-05-08 10:41:46 [32mINFO[0m:     17.92.43.132:60375 - "[1mGET /static/css/style.css?v=2.4 HTTP/1.1[0m" [32m200 OK[0m
+2026-05-08 10:41:46 [32mINFO[0m:     17.92.43.132:60576 - "[1mGET /static/images/login.gif HTTP/1.1[0m" [32m200 OK[0m
+2026-05-08 10:41:46 [32mINFO[0m:     17.92.43.132:60577 - "[1mGET /static/manifest.json HTTP/1.1[0m" [32m200 OK[0m
+2026-05-08 10:41:50 [32mINFO[0m:     17.92.43.132:60576 - "[1mGET /request/overtime HTTP/1.1[0m" [32m200 OK[0m
+2026-05-08 10:41:50 [32mINFO[0m:     17.92.43.132:60576 - "[1mPOST /request/overtime/calculate HTTP/1.1[0m" [32m200 OK[0m
+2026-05-08 10:42:39 [32mINFO[0m:     17.92.43.132:60591 - "[1mGET /dashboard HTTP/1.1[0m" [32m200 OK[0m
+2026-05-08 10:42:40 [32mINFO[0m:     17.92.43.132:60591 - "[1mGET /request/self-development HTTP/1.1[0m" [32m200 OK[0m
+2026-05-08 10:43:43 [32mINFO[0m:     17.92.43.197:51088 - "[1mGET / HTTP/1.1[0m" [32m200 OK[0m
+2026-05-08 10:46:43 [32mINFO[0m:     17.92.43.132:60830 - "[1mGET /dashboard HTTP/1.1[0m" [32m200 OK[0m
+2026-05-08 10:46:44 [32mINFO[0m:     17.92.43.132:60830 - "[1mGET /request/compensatory-leave HTTP/1.1[0m" [32m200 OK[0m
+2026-05-08 10:46:46 [32mINFO[0m:     17.92.43.132:60830 - "[1mGET /dashboard HTTP/1.1[0m" [32m200 OK[0m
+2026-05-08 10:46:47 [32mINFO[0m:     17.92.43.132:60830 - "[1mGET /request/overtime HTTP/1.1[0m" [32m200 OK[0m
+2026-05-08 10:46:47 [32mINFO[0m:     17.92.43.132:60830 - "[1mGET /static/images/over.gif HTTP/1.1[0m" [32m200 OK[0m
+2026-05-08 10:46:47 [32mINFO[0m:     17.92.43.132:60831 - "[1mPOST /request/overtime/calculate HTTP/1.1[0m" [32m200 OK[0m
+2026-05-08 10:46:52 [32mINFO[0m:     17.92.43.132:60831 - "[1mGET /dashboard HTTP/1.1[0m" [32m200 OK[0m
+2026-05-08 10:46:53 [32mINFO[0m:     17.92.43.132:60831 - "[1mGET /request/business-trip HTTP/1.1[0m" [32m200 OK[0m
+2026-05-08 10:46:56 [32mINFO[0m:     17.92.43.132:60831 - "[1mGET /dashboard HTTP/1.1[0m" [32m200 OK[0m
+2026-05-08 10:46:57 [32mINFO[0m:     17.92.43.132:60831 - "[1mGET /request/self-development HTTP/1.1[0m" [32m200 OK[0m
+2026-05-08 10:46:57 [32mINFO[0m:     17.92.43.132:60831 - "[1mGET /static/images/book.gif HTTP/1.1[0m" [32m200 OK[0m
+2026-05-08 10:47:02 [32mINFO[0m:     17.92.43.132:60831 - "[1mGET /dashboard HTTP/1.1[0m" [32m200 OK[0m
+2026-05-08 10:47:03 [32mINFO[0m:     17.92.43.132:60831 - "[1mGET /request/overtime HTTP/1.1[0m" [32m200 OK[0m
+2026-05-08 10:47:04 [32mINFO[0m:     17.92.43.132:60831 - "[1mPOST /request/overtime/calculate HTTP/1.1[0m" [32m200 OK[0m

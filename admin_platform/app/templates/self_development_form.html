@@ -4,7 +4,7 @@
 
 {% block content %}
     <div class="card p-4 mx-auto" style="max-width: 1100px;">
-        <h3 class="mb-4">{{ '자기개발비 수정' if request_data else '자기개발비 신청' }}</h3>
+        <h3 class="position-relative">{{ '자기개발비 수정' if request_data else '자기개발비 신청' }}<img src="/static/images/book.gif" alt="development" class="animated-gif" style="margin-left: 20px; width: 50px; height: 50px; max-width: 50px; max-height: 50px;"></h3>
 
         <form action="{{ '/request/edit/self-development/' ~ request_data.id if request_data else '/request/self-development' }}" method="post" enctype="multipart/form-data">
             <div class="row g-4">
