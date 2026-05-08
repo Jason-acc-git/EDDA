@@ -107,13 +107,13 @@ def get_employee_status(db: Session = Depends(get_db), current_user: User = Depe
     status_data = []
     for emp_name in employees:
         # Calculate remaining compensatory hours
-        overtime_requests = db.execute(text("SELECT content FROM requests WHERE name = :name AND type = '시간외 근무' AND status = 'approved'"), {"name": emp_name}).fetchall()
+        overtime_requests = db.execute(text("SELECT content FROM requests WHERE name = :name AND type = '시간외 근무' AND status LIKE '%대기' OR status = '재신청' OR status = 'approved'"), {"name": emp_name}).fetchall()
         total_overtime_hours = 0
         for req in overtime_requests:
             content = json.loads(req[0])
             total_overtime_hours += content.get('calculated_compensatory_hours', 0)
 
-        leave_requests = db.execute(text("SELECT content FROM requests WHERE name = :name AND type = '대휴 사용' AND status = 'approved'"), {"name": emp_name}).fetchall()
+        leave_requests = db.execute(text("SELECT content FROM requests WHERE name = :name AND type = '대휴 사용' AND status LIKE '%대기' OR status = '재신청' OR status = 'approved'"), {"name": emp_name}).fetchall()
         used_leave_hours = 0
         for req in leave_requests:
             content = json.loads(req[0])
@@ -122,7 +122,7 @@ def get_employee_status(db: Session = Depends(get_db), current_user: User = Depe
         remaining_hours = total_overtime_hours - used_leave_hours
 
         # Calculate remaining development cost
-        dev_cost_requests = db.execute(text("SELECT content FROM requests WHERE name = :name AND type = '자기개발비' AND status = 'approved'"), {"name": emp_name}).fetchall()
+        dev_cost_requests = db.execute(text("SELECT content FROM requests WHERE name = :name AND type = '자기개발비' AND status LIKE '%대기' OR status = '재신청' OR status = 'approved'"), {"name": emp_name}).fetchall()
         used_dev_cost = 0
         for req in dev_cost_requests:
             content = json.loads(req[0])
@@ -169,7 +169,7 @@ def get_overtime_hours(
             start_date = today.replace(month=1, day=1).strftime("%Y-%m-%d")
             end_date = today.replace(month=12, day=31).strftime("%Y-%m-%d")
 
-        requests_result = db.execute(text("SELECT content FROM requests WHERE name = :name AND type = '시간외 근무' AND status = 'approved' AND created BETWEEN :start_date AND :end_date"), {"name": emp_name, "start_date": start_date, "end_date": end_date}).fetchall()
+        requests_result = db.execute(text("SELECT content FROM requests WHERE name = :name AND type = '시간외 근무' AND status LIKE '%대기' OR status = '재신청' OR status = 'approved' AND created BETWEEN :start_date AND :end_date"), {"name": emp_name, "start_date": start_date, "end_date": end_date}).fetchall()
         for req in requests_result:
             content = json.loads(req[0])
             total_hours += content.get('work_hours_weekday', 0) + content.get('work_hours_holiday', 0)
@@ -210,7 +210,7 @@ def admin_dashboard(
         end_date = end_of_month.strftime("%Y-%m-%d")
 
     # Base query and params
-    base_query = "SELECT * FROM requests WHERE created BETWEEN :start_date AND :end_date AND (status LIKE '%대기' OR status = '재신청')"
+    base_query = "SELECT * FROM requests WHERE created BETWEEN :start_date AND :end_date AND (status LIKE '%대기' OR status = '재신청' OR status = 'approved')"
     params = {"start_date": start_date, "end_date": end_date}
 
     if selected_name and selected_name != "all":
@@ -288,8 +288,8 @@ def admin_dashboard(
     trip_total_pages = (total_trip + per_page - 1) // per_page
     dev_total_pages = (total_dev + per_page - 1) // per_page
 
-    pending_count = db.execute(text("SELECT count(*) FROM requests WHERE status LIKE '%대기' OR status = '재신청'")).scalar_one()
-    approved_count = db.execute(text("SELECT count(*) FROM requests WHERE status = 'approved'")).scalar_one()
+    pending_count = db.execute(text("SELECT count(*) FROM requests WHERE status LIKE '%대기' OR status = '재신청' OR status = 'approved'")).scalar_one()
+    approved_count = db.execute(text("SELECT count(*) FROM requests WHERE status LIKE '%대기' OR status = '재신청' OR status = 'approved'")).scalar_one()
     rejected_count = db.execute(text("SELECT count(*) FROM requests WHERE status = 'rejected'")).scalar_one()
 
     return render_template(
@@ -435,7 +435,7 @@ def export_to_excel(
         params["start_date"] = start_date
         params["end_date"] = end_date
 
-    where_clauses.append("r.status = 'approved'")
+    where_clauses.append("r.status LIKE '%대기' OR status = '재신청' OR status = 'approved'")
     where_clauses.append("r.type = '시간외 근무'")
     where_clauses.append("json_extract(r.content, '$.compensation') = '수당지급'")
 
