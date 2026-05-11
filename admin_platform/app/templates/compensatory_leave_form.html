@@ -34,7 +34,7 @@
 {% endblock %}
 {% block content %}
     <div class="card p-4 mx-auto compensatory-page" style="max-width: 600px;">
-<h3 class="position-relative">대휴 신청<img src="/static/images/run.gif" alt="running" class="animated-gif" style="margin-left: 20px; width: 50px; height: 50px; max-width: 50px; max-height: 50px;"></h3>
+<h3 class="position-relative">대휴 신청<img src="/static/images/run.gif" alt="running" class="animated-gif" style="margin-left: 20px; width: 120px; height: 120px; max-width: 120px; max-height: 120px;"></h3>
         <div class="alert alert-light-yellow">남은 대휴 시간: {{ remaining_hours }}시간</div>
         <form action="{{ '/request/edit/compensatory-leave/' ~ request_data.id if request_data else '/request/compensatory-leave' }}" method="post" enctype="multipart/form-data">
             <div class="mb-3">
