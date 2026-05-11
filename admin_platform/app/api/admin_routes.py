@@ -784,8 +784,18 @@ def download_pdf(request_id: int, db: Session, current_user: User) -> bytes:
         }
         
         for key, value in request_content.items():
+            if key == "work_time_range":
+                continue
             if key in key_map and value:  # None이나 빈 문자열이 아닌 경우에만 추가
-                display_value = str(value)
+                # 시간외근무 시간 정보에 시간 범위 추가
+                if key in ["work_hours_weekday", "work_hours_holiday"]:
+                    work_time_range = request_content.get("work_time_range", "")
+                    if work_time_range:
+                        display_value = f"{work_time_range} {value}hr"
+                    else:
+                        display_value = f"{value}hr"
+                else:
+                    display_value = str(value)
                 request_data_list.append([Paragraph(f"<b>{key_map[key]}:</b> {display_value}", styles['Normal'])])
 
         request_table = Table(request_data_list, hAlign='LEFT')
