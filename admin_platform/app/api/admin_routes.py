@@ -113,7 +113,7 @@ def get_employee_status(db: Session = Depends(get_db), current_user: User = Depe
             content = json.loads(req[0])
             total_overtime_hours += content.get('calculated_compensatory_hours', 0)
 
-        leave_requests = db.execute(text("SELECT content FROM requests WHERE name = :name AND type = '대휴 사용' AND (status LIKE '%대기' OR status = '재신청' OR status = 'approved')"), {"name": emp_name}).fetchall()
+        leave_requests = db.execute(text("SELECT content FROM requests WHERE name = :name AND type IN ('대휴 사용', '대휴신청') AND (status LIKE '%대기' OR status = '재신청' OR status = 'approved')"), {"name": emp_name}).fetchall()
         used_leave_hours = 0
         for req in leave_requests:
             content = json.loads(req[0])

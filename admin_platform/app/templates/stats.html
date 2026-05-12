@@ -162,7 +162,7 @@
         fetchAndRenderOvertimeChart('monthly', monthDropdown.value);
 
         // 직원 상태 테이블 로드
-        fetch('/api/employee-status')
+        fetch('/api/stats/employee-status')
             .then(response => response.json())
             .then(data => {
                 const tableContainer = document.getElementById('employeeStatusTable');
