@@ -95,13 +95,13 @@ def login(request: Request, name: str = Form(...), password: str = Form(...), db
 def dashboard(request: Request, page: int = 1, db: Session = Depends(get_db), current_user: User = Depends(get_current_user, use_cache=False)):
     return render_template("dashboard.html", {
         "request": request, 
-        "requests": get_user_requests(current_user.name), 
+        "requests": get_user_requests(current_user.name, page), 
         "current_user": current_user,
         "monthly_overtime": get_monthly_overtime_hours(current_user.name),
         "remaining_compensatory_hours": get_remaining_compensatory_hours(current_user.name),
         "remaining_dev_cost": get_remaining_dev_cost(current_user.name),
-        "page": 1,
-        "total_pages": 1,
+        "page": page,
+        "total_pages": (get_user_requests_count(current_user.name) + 9) // 10,
         "pending_approvals": get_pending_approvals_count()
     })
 
@@ -250,7 +250,7 @@ def test_user_requests(user_name: str):
             FROM requests
             WHERE name = ?
             ORDER BY id DESC
-        """, (user_name,))
+        """, (user_name, per_page, (page - 1) * per_page))
         requests = cursor.fetchall()
         conn.close()
         return {"user_name": user_name, "requests": requests, "count": len(requests)}
@@ -322,7 +322,7 @@ def get_remaining_compensatory_hours(user_name: str):
         cursor.execute("""
             SELECT content FROM requests 
             WHERE name = ? AND type = '시간외 근무' AND status = 'approved'
-        """, (user_name,))
+        """, (user_name, per_page, (page - 1) * per_page))
         
         total_overtime_hours = 0
         for req in cursor.fetchall():
@@ -334,7 +334,7 @@ def get_remaining_compensatory_hours(user_name: str):
         cursor.execute("""
             SELECT content FROM requests 
             WHERE name = ? AND type = '대휴신청' AND status = 'approved'
-        """, (user_name,))
+        """, (user_name, per_page, (page - 1) * per_page))
         
         used_leave_hours = 0
         for req in cursor.fetchall():
@@ -360,7 +360,7 @@ def get_remaining_dev_cost(user_name: str):
         cursor.execute("""
             SELECT content FROM requests 
             WHERE name = ? AND type = '자기개발비' AND status = 'approved'
-        """, (user_name,))
+        """, (user_name, per_page, (page - 1) * per_page))
         
         used_dev_cost = 0
         for req in cursor.fetchall():
@@ -373,7 +373,21 @@ def get_remaining_dev_cost(user_name: str):
     except Exception as e:
         print(f"자기개발비 계산 오류: {e}")
         return 2000000
-def get_user_requests(user_name: str):
+def get_user_requests_count(user_name: str):
+    """사용자의 총 신청내역 개수를 가져오는 함수"""
+    try:
+        import sqlite3
+        conn = sqlite3.connect('admin.db')
+        cursor = conn.cursor()
+        cursor.execute("SELECT COUNT(*) FROM requests WHERE name = ?", (user_name,))
+        count = cursor.fetchone()[0]
+        conn.close()
+        return count
+    except Exception as e:
+        print(f"사용자 신청내역 개수 조회 오류: {e}")
+        return 0
+
+def get_user_requests(user_name: str, page: int = 1, per_page: int = 10):
     """현재 사용자의 신청내역을 안전하게 가져오는 함수"""
     try:
         import sqlite3
@@ -385,8 +399,8 @@ def get_user_requests(user_name: str):
             FROM requests
             WHERE name = ?
             ORDER BY id DESC
-            LIMIT 10
-        """, (user_name,))
+            LIMIT ? OFFSET ?
+        """, (user_name, per_page, (page - 1) * per_page))
         raw_requests = cursor.fetchall()
         conn.close()
 

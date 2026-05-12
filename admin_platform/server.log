@@ -1,23 +1,19 @@
-2026-05-12 14:27:02 [32mINFO[0m:     Started server process [[36m57088[0m]
-2026-05-12 14:27:02 [32mINFO[0m:     Waiting for application startup.
-2026-05-12 14:27:02 [32mINFO[0m:     Application startup complete.
-2026-05-12 14:27:02 [32mINFO[0m:     Uvicorn running on [1mhttp://0.0.0.0:8000[0m (Press CTRL+C to quit)
-2026-05-12 14:27:06 [32mINFO[0m:     17.92.43.132:54334 - "[1mGET /dashboard HTTP/1.1[0m" [32m200 OK[0m
-2026-05-12 14:27:06 [32mINFO[0m:     17.92.43.132:54334 - "[1mGET /static/images/login.gif HTTP/1.1[0m" [32m200 OK[0m
-2026-05-12 14:27:06 [32mINFO[0m:     17.92.43.132:54335 - "[1mGET /static/css/style.css?v=2.4 HTTP/1.1[0m" [32m200 OK[0m
-2026-05-12 14:27:06 [32mINFO[0m:     17.92.43.132:54336 - "[1mGET /static/manifest.json HTTP/1.1[0m" [32m200 OK[0m
-2026-05-12 14:27:11 [32mINFO[0m:     17.92.43.132:54362 - "[1mGET / HTTP/1.1[0m" [32m200 OK[0m
-2026-05-12 14:27:11 [32mINFO[0m:     17.92.43.132:54362 - "[1mGET /static/images/login.gif HTTP/1.1[0m" [32m200 OK[0m
-2026-05-12 14:27:11 [32mINFO[0m:     17.92.43.132:54363 - "[1mGET /static/css/style.css?v=1.5 HTTP/1.1[0m" [32m200 OK[0m
-2026-05-12 14:27:16 [32mINFO[0m:     17.92.43.132:54362 - "[1mPOST /login HTTP/1.1[0m" [33m303 See Other[0m
-2026-05-12 14:27:16 [32mINFO[0m:     17.92.43.132:54362 - "[1mGET /dashboard HTTP/1.1[0m" [32m200 OK[0m
-2026-05-12 14:27:16 [32mINFO[0m:     17.92.43.132:54362 - "[1mGET /static/css/style.css?v=2.4 HTTP/1.1[0m" [32m200 OK[0m
-2026-05-12 14:27:17 [32mINFO[0m:     17.92.43.132:54362 - "[1mGET /static/images/login.gif HTTP/1.1[0m" [32m200 OK[0m
-2026-05-12 14:27:17 [32mINFO[0m:     17.92.43.132:54385 - "[1mGET /static/manifest.json HTTP/1.1[0m" [32m200 OK[0m
-2026-05-12 14:27:18 [32mINFO[0m:     17.92.43.132:54362 - "[1mGET /stats HTTP/1.1[0m" [32m200 OK[0m
-2026-05-12 14:27:18 [32mINFO[0m:     17.92.43.132:54362 - "[1mGET /static/css/style.css?v=2.4 HTTP/1.1[0m" [32m200 OK[0m
-2026-05-12 14:27:18 [32mINFO[0m:     17.92.43.132:54385 - "[1mGET /static/manifest.json HTTP/1.1[0m" [32m200 OK[0m
-2026-05-12 14:27:18 [32mINFO[0m:     17.92.43.132:54362 - "[1mGET /api/stats/overtime-hours?period=monthly&month=2026-05 HTTP/1.1[0m" [32m200 OK[0m
-2026-05-12 14:27:18 [32mINFO[0m:     17.92.43.132:54384 - "[1mGET /api/stats/employee-status HTTP/1.1[0m" [32m200 OK[0m
-2026-05-12 14:27:21 [32mINFO[0m:     17.92.43.132:54362 - "[1mGET /api/stats/overtime-hours?period=monthly&month=2026-06 HTTP/1.1[0m" [32m200 OK[0m
-2026-05-12 14:27:25 [32mINFO[0m:     17.92.43.132:54362 - "[1mGET /api/stats/overtime-hours?period=monthly&month=2026-07 HTTP/1.1[0m" [32m200 OK[0m
+2026-05-13 08:57:51 [32mINFO[0m:     Started server process [[36m62483[0m]
+2026-05-13 08:57:51 [32mINFO[0m:     Waiting for application startup.
+2026-05-13 08:57:51 [32mINFO[0m:     Application startup complete.
+2026-05-13 08:57:51 [32mINFO[0m:     Uvicorn running on [1mhttp://0.0.0.0:8000[0m (Press CTRL+C to quit)
+2026-05-13 08:58:01 [32mINFO[0m:     17.92.43.132:50068 - "[1mGET /logout HTTP/1.1[0m" [33m303 See Other[0m
+2026-05-13 08:58:01 [32mINFO[0m:     17.92.43.132:50068 - "[1mGET /?message=%EC%95%88%EC%A0%84%ED%95%98%EA%B2%8C+%EB%A1%9C%EA%B7%B8%EC%95%84%EC%9B%83%EB%90%98%EC%97%88%EC%8A%B5%EB%8B%88%EB%8B%A4. HTTP/1.1[0m" [32m200 OK[0m
+2026-05-13 08:58:07 [32mINFO[0m:     17.92.43.132:50069 - "[1mPOST /login HTTP/1.1[0m" [33m303 See Other[0m
+2026-05-13 08:58:07 대휴 시간 계산 오류: name 'per_page' is not defined
+2026-05-13 08:58:07 자기개발비 계산 오류: name 'per_page' is not defined
+2026-05-13 08:58:07 [32mINFO[0m:     17.92.43.132:50069 - "[1mGET /dashboard HTTP/1.1[0m" [32m200 OK[0m
+2026-05-13 08:58:10 대휴 시간 계산 오류: name 'per_page' is not defined
+2026-05-13 08:58:10 자기개발비 계산 오류: name 'per_page' is not defined
+2026-05-13 08:58:10 [32mINFO[0m:     17.92.43.132:50069 - "[1mGET /dashboard?page=2 HTTP/1.1[0m" [32m200 OK[0m
+2026-05-13 08:58:11 대휴 시간 계산 오류: name 'per_page' is not defined
+2026-05-13 08:58:11 자기개발비 계산 오류: name 'per_page' is not defined
+2026-05-13 08:58:11 [32mINFO[0m:     17.92.43.132:50069 - "[1mGET /dashboard?page=3 HTTP/1.1[0m" [32m200 OK[0m
+2026-05-13 08:58:13 대휴 시간 계산 오류: name 'per_page' is not defined
+2026-05-13 08:58:13 자기개발비 계산 오류: name 'per_page' is not defined
+2026-05-13 08:58:13 [32mINFO[0m:     17.92.43.132:50069 - "[1mGET /dashboard?page=1 HTTP/1.1[0m" [32m200 OK[0m
