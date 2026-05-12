@@ -780,7 +780,7 @@ def download_pdf(request_id: int, db: Session, current_user: User) -> bytes:
             "purpose": "목적", "purpose_other": "목적 (기타)", "course_content": "수강 내용", "cost": "비용",
             "start_date": "시작일", "end_date": "종료일", "reference_site": "참고 사이트",
             "region": "출장 지역", "region_other": "출장 지역 (기타)", "organization": "출장 기관",
-            "transport": "이동 수단", "hours": "사용 시간"
+            "transport": "이동 수단", "hours": "사용 시간", "reason": "사유"
         }
         
         for key, value in request_content.items():
