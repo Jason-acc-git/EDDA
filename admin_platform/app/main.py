@@ -410,13 +410,37 @@ def get_user_requests(user_name: str):
                 "leave_date": content.get("leave_date") or "2024-01-01"
             }
             
+
+            # 신청 유형별 구체적인 summary 생성
+            summary = ""
+            if req[1] == "시간외 근무":
+                weekday_hours = content.get("work_hours_weekday", 0)
+                holiday_hours = content.get("work_hours_holiday", 0)
+                compensation = content.get("compensation", "")
+                total_hours = weekday_hours + holiday_hours
+                if compensation == "대체휴가":
+                    summary = f"{total_hours}시간-대체휴가"
+                else:
+                    summary = f"{total_hours}시간-수당지급"
+            elif req[1] == "대휴 사용" or req[1] == "대휴신청":
+                hours = content.get("hours", 0)
+                summary = f"{hours}시간 대휴사용"
+            elif req[1] == "출장":
+                region = content.get("region", content.get("region_other", ""))
+                summary = f"{region} 출장"
+            elif req[1] == "자기개발비":
+                cost = content.get("cost", 0)
+                summary = f"{cost:,}원 자기개발비"
+            else:
+                summary = f"{req[1]} 신청"
+
             formatted_req = {
                 'id': req[0],
                 'type': req[1],
                 'content': json.dumps(safe_content),
                 'status': req[3],
                 'created': req[4] if req[4] else '2024-01-01 00:00:00',
-                'summary': f"{req[1]} 신청",
+                'summary': summary,
                 'reject_reason': req[5] if len(req) > 5 and req[5] else ''
             }
             formatted_requests.append(formatted_req)
