@@ -169,7 +169,7 @@ def get_overtime_hours(
             start_date = today.replace(month=1, day=1).strftime("%Y-%m-%d")
             end_date = today.replace(month=12, day=31).strftime("%Y-%m-%d")
 
-        requests_result = db.execute(text("SELECT content FROM requests WHERE name = :name AND type = '시간외 근무' AND (status LIKE '%대기' OR status = '재신청' OR status = 'approved') AND created BETWEEN :start_date AND :end_date"), {"name": emp_name, "start_date": start_date, "end_date": end_date}).fetchall()
+        requests_result = db.execute(text("SELECT content FROM requests WHERE name = :name AND type = '시간외 근무' AND (status LIKE '%대기' OR status = '재신청' OR status = 'approved') AND json_extract(content, '$.work_date') BETWEEN :start_date AND :end_date"), {"name": emp_name, "start_date": start_date, "end_date": end_date}).fetchall()
         for req in requests_result:
             content = json.loads(req[0])
             total_hours += content.get('work_hours_weekday', 0) + content.get('work_hours_holiday', 0)
