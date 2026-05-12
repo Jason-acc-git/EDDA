@@ -772,7 +772,7 @@ def download_pdf(request_id: int, db: Session, current_user: User) -> bytes:
         story.append(Paragraph(f"{title} 승인 확인서", styles['h1']))
         story.append(Spacer(1, 24))
 
-        request_data_list = [[Paragraph(f"<b>신청자:</b> {request_data['name']}", styles['Normal'])], [Paragraph(f"<b>신청일:</b> {request_data['created'].split(' ')[0]}", styles['Normal'])]]
+        request_data_list = [[Paragraph(f"<b>신청자:</b> {request_data['name']}", styles['Normal'])], [Paragraph(f"<b>신청일:</b> {request_data['created'].split(' ')[0]}", styles['Normal'])], [Paragraph("", styles['Normal'])], [Paragraph("", styles['Normal'])]]
         key_map = {
             "work_type": "근무 유형", "work_date": "근무일", "work_hours_weekday": "평일 근무시간",
             "work_hours_holiday": "휴일 근무시간", "reason_type": "신청 사유", "reason_detail": "상세 사유",
