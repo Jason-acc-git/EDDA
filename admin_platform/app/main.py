@@ -430,7 +430,7 @@ def get_user_requests(user_name: str):
                 summary = f"{region} 출장"
             elif req[1] == "자기개발비":
                 cost = content.get("cost", 0)
-                summary = f"{cost:,}원 자기개발비"
+                summary = f"{cost}원 자기개발비"
             else:
                 summary = f"{req[1]} 신청"
 
