@@ -444,7 +444,8 @@ def get_user_requests(user_name: str, page: int = 1, per_page: int = 10):
                 summary = f"{region} 출장"
             elif req[1] == "자기개발비":
                 cost = content.get("cost", 0)
-                summary = f"{cost}원 자기개발비"
+                course_title = content.get("course_title", "")
+                summary = f"{cost}원 {course_title}"
             else:
                 summary = f"{req[1]} 신청"
 
