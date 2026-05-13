@@ -250,7 +250,7 @@ def test_user_requests(user_name: str):
             FROM requests
             WHERE name = ?
             ORDER BY id DESC
-        """, (user_name, per_page, (page - 1) * per_page))
+        """, (user_name,))
         requests = cursor.fetchall()
         conn.close()
         return {"user_name": user_name, "requests": requests, "count": len(requests)}
@@ -322,7 +322,7 @@ def get_remaining_compensatory_hours(user_name: str):
         cursor.execute("""
             SELECT content FROM requests 
             WHERE name = ? AND type = '시간외 근무' AND status = 'approved'
-        """, (user_name, per_page, (page - 1) * per_page))
+        """, (user_name,))
         
         total_overtime_hours = 0
         for req in cursor.fetchall():
@@ -334,7 +334,7 @@ def get_remaining_compensatory_hours(user_name: str):
         cursor.execute("""
             SELECT content FROM requests 
             WHERE name = ? AND type = '대휴신청' AND status = 'approved'
-        """, (user_name, per_page, (page - 1) * per_page))
+        """, (user_name,))
         
         used_leave_hours = 0
         for req in cursor.fetchall():
@@ -360,7 +360,7 @@ def get_remaining_dev_cost(user_name: str):
         cursor.execute("""
             SELECT content FROM requests 
             WHERE name = ? AND type = '자기개발비' AND status = 'approved'
-        """, (user_name, per_page, (page - 1) * per_page))
+        """, (user_name,))
         
         used_dev_cost = 0
         for req in cursor.fetchall():
