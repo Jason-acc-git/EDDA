@@ -32,7 +32,7 @@
                         <div class="mb-3">
                             <label class="form-label">수강비용 <span class="text-danger">*</span></label>
                             <div class="form-text mb-2">사용가능 금액: {{ "{:,.0f}".format(remaining_dev_cost) }}원</div>
-                            <div class="form-text mb-2">예시) KRW 1,000,000 (일백만원정)</div>
+                            <div class="form-text mb-2">!숫자만 기입해 주세요! </div>
                             <input type="text" name="cost" class="form-control" value="{{ request_data.content.cost if request_data else '' }}" required>
                         </div>
                     </div>

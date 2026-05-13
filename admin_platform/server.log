@@ -6,3 +6,4 @@
 2026-05-14 08:54:59 [32mINFO[0m:     17.92.43.132:58344 - "[1mGET /?message=%EC%95%88%EC%A0%84%ED%95%98%EA%B2%8C+%EB%A1%9C%EA%B7%B8%EC%95%84%EC%9B%83%EB%90%98%EC%97%88%EC%8A%B5%EB%8B%88%EB%8B%A4. HTTP/1.1[0m" [32m200 OK[0m
 2026-05-14 08:55:03 [32mINFO[0m:     17.92.43.132:58344 - "[1mPOST /login HTTP/1.1[0m" [33m303 See Other[0m
 2026-05-14 08:55:03 [32mINFO[0m:     17.92.43.132:58344 - "[1mGET /dashboard HTTP/1.1[0m" [32m200 OK[0m
+2026-05-14 08:56:25 [32mINFO[0m:     17.92.43.132:58351 - "[1mGET /request/self-development HTTP/1.1[0m" [32m200 OK[0m
