@@ -7,3 +7,12 @@
 2026-05-14 08:55:03 [32mINFO[0m:     17.92.43.132:58344 - "[1mPOST /login HTTP/1.1[0m" [33m303 See Other[0m
 2026-05-14 08:55:03 [32mINFO[0m:     17.92.43.132:58344 - "[1mGET /dashboard HTTP/1.1[0m" [32m200 OK[0m
 2026-05-14 08:56:25 [32mINFO[0m:     17.92.43.132:58351 - "[1mGET /request/self-development HTTP/1.1[0m" [32m200 OK[0m
+2026-05-14 08:58:49 [32mINFO[0m:     17.92.43.132:58358 - "[1mGET /dashboard HTTP/1.1[0m" [32m200 OK[0m
+2026-05-14 08:58:51 [32mINFO[0m:     17.92.43.132:58358 - "[1mGET /request/self-development HTTP/1.1[0m" [32m200 OK[0m
+2026-05-14 08:58:53 [32mINFO[0m:     17.92.43.132:58358 - "[1mGET /dashboard HTTP/1.1[0m" [32m200 OK[0m
+2026-05-14 08:58:56 [32mINFO[0m:     17.92.43.132:58358 - "[1mGET /request/compensatory-leave HTTP/1.1[0m" [32m200 OK[0m
+2026-05-14 08:58:56 [32mINFO[0m:     17.92.43.132:58358 - "[1mGET /static/images/run.gif HTTP/1.1[0m" [33m304 Not Modified[0m
+2026-05-14 09:00:24 [32mINFO[0m:     17.92.43.197:55714 - "[1mGET / HTTP/1.1[0m" [32m200 OK[0m
+2026-05-14 09:02:02 [32mINFO[0m:     17.92.43.132:58386 - "[1mGET /dashboard HTTP/1.1[0m" [32m200 OK[0m
+2026-05-14 09:02:06 [32mINFO[0m:     17.92.43.132:58386 - "[1mGET /request/compensatory-leave HTTP/1.1[0m" [32m200 OK[0m
+2026-05-14 09:02:24 [32mINFO[0m:     17.92.43.132:58387 - "[1mGET /request/compensatory-leave HTTP/1.1[0m" [32m200 OK[0m
