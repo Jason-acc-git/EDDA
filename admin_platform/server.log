@@ -8179,3 +8179,27 @@ PG7
 2026-05-15 09:20:56 [32mINFO[0m:     17.92.43.132:53120 - "[1mGET /dashboard HTTP/1.1[0m" [32m200 OK[0m
 2026-05-15 09:20:58 [32mINFO[0m:     17.92.43.132:53120 - "[1mGET /employee/list HTTP/1.1[0m" [32m200 OK[0m
 2026-05-15 09:21:04 [32mINFO[0m:     17.92.43.132:53121 - "[1mGET /dashboard HTTP/1.1[0m" [32m200 OK[0m
+2026-05-15 09:21:57 [32mINFO[0m:     17.92.43.132:53125 - "[1mGET /employee/list HTTP/1.1[0m" [32m200 OK[0m
+2026-05-15 09:22:43 [32mINFO[0m:     17.92.43.132:53129 - "[1mGET /dashboard HTTP/1.1[0m" [32m200 OK[0m
+2026-05-15 09:23:19 [32mINFO[0m:     17.92.43.132:53138 - "[1mGET /employee/list HTTP/1.1[0m" [32m200 OK[0m
+2026-05-15 09:23:34 [32mINFO[0m:     17.92.43.132:53141 - "[1mGET /dashboard HTTP/1.1[0m" [32m200 OK[0m
+2026-05-15 09:35:44 [32mINFO[0m:     17.92.43.197:56514 - "[1mGET / HTTP/1.1[0m" [32m200 OK[0m
+2026-05-15 09:42:21 [32mINFO[0m:     17.92.43.132:53526 - "[1mGET /employee/list HTTP/1.1[0m" [31m401 Unauthorized[0m
+2026-05-15 09:42:26 [32mINFO[0m:     17.92.43.132:53526 - "[1mGET / HTTP/1.1[0m" [32m200 OK[0m
+2026-05-15 09:42:33 [32mINFO[0m:     17.92.43.132:53527 - "[1mPOST /login HTTP/1.1[0m" [33m303 See Other[0m
+2026-05-15 09:42:33 [32mINFO[0m:     17.92.43.132:53527 - "[1mGET /dashboard HTTP/1.1[0m" [32m200 OK[0m
+2026-05-15 09:42:34 [32mINFO[0m:     17.92.43.132:53527 - "[1mGET /employee/list HTTP/1.1[0m" [32m200 OK[0m
+2026-05-15 09:42:38 [32mINFO[0m:     17.92.43.132:53527 - "[1mGET /settings HTTP/1.1[0m" [32m200 OK[0m
+2026-05-15 09:42:41 [32mINFO[0m:     17.92.43.132:53527 - "[1mGET /stats HTTP/1.1[0m" [32m200 OK[0m
+2026-05-15 09:42:41 [32mINFO[0m:     17.92.43.132:53527 - "[1mGET /api/stats/overtime-hours?period=monthly&month=2026-05 HTTP/1.1[0m" [32m200 OK[0m
+2026-05-15 09:42:41 [32mINFO[0m:     17.92.43.132:53532 - "[1mGET /api/stats/employee-status HTTP/1.1[0m" [32m200 OK[0m
+2026-05-15 09:42:43 [32mINFO[0m:     17.92.43.132:53532 - "[1mGET /settings HTTP/1.1[0m" [32m200 OK[0m
+2026-05-15 09:42:52 [32mINFO[0m:     17.92.43.132:53537 - "[1mGET /employee/list HTTP/1.1[0m" [32m200 OK[0m
+2026-05-15 09:44:14 [32mINFO[0m:     17.92.43.132:53650 - "[1mGET /employee/list HTTP/1.1[0m" [32m200 OK[0m
+2026-05-15 09:44:20 [32mINFO[0m:     17.92.43.132:53651 - "[1mGET /logout HTTP/1.1[0m" [33m303 See Other[0m
+2026-05-15 09:44:20 [32mINFO[0m:     17.92.43.132:53651 - "[1mGET /?message=%EC%95%88%EC%A0%84%ED%95%98%EA%B2%8C+%EB%A1%9C%EA%B7%B8%EC%95%84%EC%9B%83%EB%90%98%EC%97%88%EC%8A%B5%EB%8B%88%EB%8B%A4. HTTP/1.1[0m" [32m200 OK[0m
+2026-05-15 09:44:24 [32mINFO[0m:     17.92.43.132:53651 - "[1mPOST /login HTTP/1.1[0m" [32m200 OK[0m
+2026-05-15 09:44:36 [32mINFO[0m:     17.92.43.132:53652 - "[1mPOST /login HTTP/1.1[0m" [33m303 See Other[0m
+2026-05-15 09:44:36 [32mINFO[0m:     17.92.43.132:53652 - "[1mGET /dashboard HTTP/1.1[0m" [32m200 OK[0m
+2026-05-15 09:44:45 [32mINFO[0m:     17.92.43.132:53654 - "[1mGET /employee/list HTTP/1.1[0m" [32m200 OK[0m
+2026-05-15 09:44:52 [32mINFO[0m:     17.92.43.132:53655 - "[1mGET /settings HTTP/1.1[0m" [32m200 OK[0m

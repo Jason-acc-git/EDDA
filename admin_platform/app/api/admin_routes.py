@@ -95,12 +95,12 @@ def update_settings(
 @router.get("/stats")
 def stats_page(
     request: Request,
-    current_user: User = Depends(require_role(["admin", "approver", "lead"], use_cache=False))
+    current_user: User = Depends(require_role(["admin", "approver", "lead", "manager"], use_cache=False))
 ):
     return render_template("stats.html", {"request": request, "current_user": current_user})
 
 @router.get("/api/stats/employee-status")
-def get_employee_status(db: Session = Depends(get_db), current_user: User = Depends(require_role(["admin", "approver", "lead"], use_cache=False))):
+def get_employee_status(db: Session = Depends(get_db), current_user: User = Depends(require_role(["admin", "approver", "lead", "manager"], use_cache=False))):
     employees_result = db.execute(text("SELECT name FROM employees WHERE name != 'admin'")).fetchall()
     employees = [row[0] for row in employees_result]
 
@@ -143,7 +143,7 @@ def get_overtime_hours(
     period: str = Query("monthly", enum=["monthly", "yearly"]),
     month: Optional[str] = Query(None),
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_role(["admin", "approver", "lead"], use_cache=False))
+    current_user: User = Depends(require_role(["admin", "approver", "lead", "manager"], use_cache=False))
 ):
     employees_result = db.execute(text("SELECT name FROM employees WHERE name NOT IN ('admin', 'lead')")).fetchall()
     employees = [row[0] for row in employees_result]
@@ -186,7 +186,7 @@ def admin_dashboard(
     selected_name: Optional[str] = Query(None),
     request_type: Optional[str] = Query(None),
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_role(["admin", "approver", "lead"], use_cache=False)),
+    current_user: User = Depends(require_role(["admin", "approver", "lead", "manager"], use_cache=False)),
     overtime_page: int = 1,
     compensatory_page: int = 1,
     trip_page: int = 1,
@@ -322,7 +322,7 @@ def admin_dashboard(
     )
 
 @router.get("/admin-dashboard/pdf/merge")
-def merge_pdfs(ids: str, db: Session = Depends(get_db), current_user: User = Depends(require_role(["admin", "approver", "lead"], use_cache=False))):
+def merge_pdfs(ids: str, db: Session = Depends(get_db), current_user: User = Depends(require_role(["admin", "approver", "lead", "manager"], use_cache=False))):
     request_ids = [int(id) for id in ids.split(',')]
 
     request_ids_str = ",".join(map(str, request_ids))
@@ -363,7 +363,7 @@ def export_to_excel(
     selected_name: Optional[str] = Query(None),
     request_type: Optional[str] = Query(None),
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_role(["admin", "approver", "lead"], use_cache=False))
+    current_user: User = Depends(require_role(["admin", "approver", "lead", "manager"], use_cache=False))
 ):
     if request_type:
         request_type = request_type.strip()
@@ -591,7 +591,7 @@ def export_to_excel(
 #     selected_name: Optional[str] = Query(None),
 #     request_type: Optional[str] = Query(None),
 #     db: Session = Depends(get_db),
-#     current_user: User = Depends(require_role(["admin", "approver", "lead"], use_cache=False))
+#     current_user: User = Depends(require_role(["admin", "approver", "lead", "manager"], use_cache=False))
 # ):
 #     # Date filtering logic
 #     if not start_date or not end_date:
@@ -846,7 +846,7 @@ def download_pdf_route(request_id: int, db: Session = Depends(get_db), current_u
     request_owner_result = db.execute(text("SELECT name FROM requests WHERE id = :id"), {"id": request_id}).fetchone()
     request_owner = request_owner_result[0] if request_owner_result else None
 
-    if not request_owner or (current_user.name != request_owner and current_user.role not in ["admin", "approver", "lead"]):
+    if not request_owner or (current_user.name != request_owner and current_user.role not in ["admin", "approver", "lead", "manager"]):
         raise HTTPException(status_code=403, detail="이 PDF에 접근할 권한이 없습니다.")
     
     pdf_content = download_pdf(request_id, db, current_user)
