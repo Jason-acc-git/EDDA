@@ -120,9 +120,9 @@ def get_approver_by_role(role):
         return "lead"
 
     if role == "lead":
-        return "manager"
+        return "approver"
 
-    if role == "manager":
+    if role == "approver":
         return "admin"
 
     return None

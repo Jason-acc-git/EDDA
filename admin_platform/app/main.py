@@ -232,7 +232,7 @@ def test_pending_count():
         import sqlite3
         conn = sqlite3.connect('admin.db')
         cursor = conn.cursor()
-        cursor.execute("SELECT COUNT(*) FROM requests WHERE status = 'manager 승인 대기'")
+        cursor.execute("SELECT COUNT(*) FROM requests WHERE status = 'approver 승인 대기'")
         count = cursor.fetchone()[0]
         conn.close()
         return {"pending_count": count, "status": "success"}
