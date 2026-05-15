@@ -1,15 +1,24 @@
 {% extends "base.html" %}
 
-    <div class="mt-3 mx-auto" style="max-width: 600px;">
-        <a href="/dashboard" class="btn btn-secondary">홈으로</a>
-    </div>
-{% block title %}환경 설정{% endblock %}
+{% block title %}설정{% endblock %}
 
 {% block content %}
     <div class="card p-4 mx-auto" style="max-width: 600px;">
         <h3 class="mb-4">시간외 근무 및 문서 설정</h3>
         {% if message %}
             <div class="alert alert-success">{{ message }}</div>
+            <hr class="my-4">
+            <h3 class="mb-4">문서 관리자 설정</h3>
+            <div class="mb-3">
+                <label for="document_manager" class="form-label">문서 관리자</label>
+                <select id="document_manager" name="document_manager" class="form-select">
+                    <option value="">-- 관리자 선택 --</option>
+                    {% for employee in all_employees %}
+                        <option value="{{ employee.name }}" {% if employee.name == document_manager %}selected{% endif %}>{{ employee.name }}</option>
+                    {% endfor %}
+                </select>
+                <small class="text-muted">선택된 직원이 문서 관리자 권한을 가지게 됩니다.</small>
+            </div>
         {% endif %}
         <form method="post">
             <div class="mb-3">
@@ -38,6 +47,18 @@
                 <select id="pdf_approver" name="pdf_approver" class="form-select">
                     <option value="">-- 승인자 선택 --</option>
                     {% for employee in employees %}
+            <hr class="my-4">
+            <h3 class="mb-4">문서 관리자 설정</h3>
+            <div class="mb-3">
+                <label for="document_manager" class="form-label">문서 관리자</label>
+                <select id="document_manager" name="document_manager" class="form-select">
+                    <option value="">-- 관리자 선택 --</option>
+                    {% for employee in all_employees %}
+                        <option value="{{ employee.name }}" {% if employee.name == document_manager %}selected{% endif %}>{{ employee.name }}</option>
+                    {% endfor %}
+                </select>
+                <small class="text-muted">선택된 직원이 문서 관리자 권한을 가지게 됩니다.</small>
+            </div>
                         <option value="{{ employee.name }}" {% if employee.name == pdf_approver %}selected{% endif %}>{{ employee.name }}</option>
                     {% endfor %}
                 </select>
@@ -61,6 +82,6 @@
         </form>
     </div>
     <div class="mt-3 mx-auto" style="max-width: 600px;">
-        <a href="/dashboard" class="btn btn-secondary">홈으로</a>
+        <a href="/dashboard" class="btn btn-secondary w-100" style="padding: 0.25rem 0.5rem; font-size: .875rem;">홈으로</a>
     </div>
 {% endblock %}

@@ -27,6 +27,7 @@
         <hr>
         <h5 class="mb-3">관리</h5>
         <div class="d-flex gap-2 flex-wrap">
+            {% if current_user.role in ['admin', 'approver', 'lead'] %}
             <a href="/approve-list" class="btn btn-primary position-relative">
               승인 관리
               {% if pending_approvals > 0 %}
@@ -35,10 +36,12 @@
                   <span class="visually-hidden">unread messages</span>
                 </span>
               {% endif %}
+
             </a>
+            {% endif %}
             <a href="/admin-dashboard" class="btn btn-primary">문서관리</a>
             <a href="/stats" class="btn btn-primary">통계 보기</a>
-            <a href="/settings" class="btn btn-primary">환경 설정</a>
+            {% if current_user.role in ['admin', 'approver'] %}<a href="/settings" class="btn btn-primary">환경 설정</a>{% endif %}
             {% if current_user.role in ['admin', 'lead'] %}
             <a href="/employee/list" class="btn btn-primary">직원 관리</a>
             {% endif %}

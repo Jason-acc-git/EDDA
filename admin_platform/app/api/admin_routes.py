@@ -62,6 +62,11 @@ def settings_page(
         pdf_approver_result = db.execute(text("SELECT value FROM settings WHERE key = 'pdf_approver'")).fetchone()
         pdf_approver = pdf_approver_result[0] if pdf_approver_result else None
         employees = db.execute(text("SELECT name FROM employees WHERE role IN ('admin', 'manager', 'lead')")).fetchall()
+        all_employees = db.execute(text("SELECT name FROM employees")).fetchall()
+        document_manager_result = db.execute(text("SELECT value FROM settings WHERE key = 'document_manager'")).fetchone()
+        document_manager = document_manager_result[0] if document_manager_result else None
+        response_data["all_employees"] = all_employees
+        response_data["document_manager"] = document_manager
         
         response_data["pdf_approver"] = pdf_approver
         response_data["employees"] = employees
@@ -76,7 +81,8 @@ def update_settings(
     max_overtime_hours: int = Form(...),
     start_date: str = Form(None),
     end_date: str = Form(None),
-    pdf_approver: str = Form(None)
+    pdf_approver: str = Form(None),
+    document_manager: str = Form(None)
 ):
     # 시간외 근무 설정 업데이트 (모든 권한)
     db.execute(text("UPDATE settings SET value = :value, start_date = :start_date, end_date = :end_date WHERE key = 'max_overtime_hours'"), {"value": max_overtime_hours, "start_date": start_date, "end_date": end_date})
@@ -88,6 +94,18 @@ def update_settings(
             db.execute(text("UPDATE settings SET value = :value WHERE key = 'pdf_approver'"), {"value": pdf_approver})
         else:
             db.execute(text("INSERT INTO settings (key, value) VALUES ('pdf_approver', :value)"), {"value": pdf_approver})
+
+        # 문서 관리자 설정 업데이트
+        manager_setting = db.execute(text("SELECT 1 FROM settings WHERE key = 'document_manager'")).fetchone()
+        if manager_setting:
+            db.execute(text("UPDATE settings SET value = :value WHERE key = 'document_manager'"), {"value": document_manager})
+        else:
+            db.execute(text("INSERT INTO settings (key, value) VALUES ('document_manager', :value)"), {"value": document_manager})
+
+        # 이전 manager 권한 제거 및 새 manager 권한 부여
+        db.execute(text("UPDATE employees SET role = 'employee' WHERE role = 'manager'"))
+        if document_manager:
+            db.execute(text("UPDATE employees SET role = 'manager' WHERE name = :name"), {"name": document_manager})
 
     db.commit()
     return RedirectResponse(url="/settings", status_code=303)
