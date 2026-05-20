@@ -116,13 +116,13 @@ def get_user_role(name):
 
 def get_approver_by_role(role):
 
-    if role == "employee":
+    if role == "Employee":
         return "lead"
 
     if role == "lead":
-        return "approver"
+        return "Approver"
 
-    if role == "approver":
+    if role == "Approver":
         return "admin"
 
     return None

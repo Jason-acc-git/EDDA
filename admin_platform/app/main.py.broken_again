@@ -127,8 +127,8 @@ def dashboard(request: Request, page: int = 1, db: Session = Depends(get_db), cu
     remaining_dev_cost = 2000000 - used_dev_cost
 
     pending_approvals = 0
-    if current_user.role in ['admin', 'manager', 'lead']:
-        if current_user.role == 'admin':
+    if current_user.role in ['Admin', 'Manager', 'Lead']:
+        if current_user.role == 'Admin':
             pending_approvals_result = db.execute(text("SELECT COUNT(*) FROM requests WHERE status LIKE '%승인 대기%'")).fetchone()
         else:
             pending_approvals_result = db.execute(text("SELECT COUNT(*) FROM requests WHERE status LIKE :status"), {"status": f'%{current_user.role} 승인 대기%'}).fetchone()

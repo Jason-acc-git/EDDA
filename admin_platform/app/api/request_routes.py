@@ -89,13 +89,13 @@ def handle_compensatory_leave(request: Request, leave_date: date = Form(...), ho
         return HTMLResponse(content=f"<script>alert('잔여 대휴 시간({remaining_hours}시간)을 초과하여 신청할 수 없습니다.'); window.location.href = '/request/compensatory-leave';</script>")
 
     content = json.dumps({"leave_date": str(leave_date), "hours": hours, "reason": reason})
-    approver_role = 'approver'
+    approver_role = 'Approver'
     db.execute(text("INSERT INTO requests (name, type, content, status, approver, created) VALUES (:name, :type, :content, :status, :approver, :created)"), {
         "name": current_user.name, 
         "type": '대휴신청', 
         "content": content, 
         "status": f'{approver_role} 승인 대기', 
-        "approver": approver_role,
+        "Approver": approver_role,
         "created": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     })
     db.commit()
@@ -163,13 +163,13 @@ async def save_overtime(
         "calculated_compensatory_hours": calculated_compensatory_hours
     }
 
-    approver_role = 'approver'
+    approver_role = 'Approver'
     db.execute(text("INSERT INTO requests (name, type, status, created, approver, content) VALUES (:name, :type, :status, :created, :approver, :content)"), {
         "name": current_user.name, 
         "type": "시간외 근무", 
         "status": f"{approver_role} 승인 대기", 
         "created": datetime.now().strftime("%Y-%m-%d %H:%M:%S"), 
-        "approver": approver_role, 
+        "Approver": approver_role, 
         "content": json.dumps(content_data, ensure_ascii=False)
     })
     db.commit()
@@ -198,13 +198,13 @@ def submit_business_trip(
         "purpose_other": purpose_other,
         "transport": transport
     }
-    approver_role = 'approver'
+    approver_role = 'Approver'
     db.execute(text("INSERT INTO requests (name, type, status, created, approver, content) VALUES (:name, :type, :status, :created, :approver, :content)"), {
         "name": current_user.name, 
         "type": "출장", 
         "status": f"{approver_role} 승인 대기", 
         "created": datetime.now().strftime("%Y-%m-%d %H:%M:%S"), 
-        "approver": approver_role, 
+        "Approver": approver_role, 
         "content": json.dumps(content_data, ensure_ascii=False)
     })
     db.commit()
@@ -236,13 +236,13 @@ def submit_self_development(
         "end_date": end_date,
         "reference_site": reference_site
     }
-    approver_role = 'approver'
+    approver_role = 'Approver'
     db.execute(text("INSERT INTO requests (name, type, status, created, approver, cost, content, file_path) VALUES (:name, :type, :status, :created, :approver, :cost, :content, :file_path)"), {
         "name": current_user.name, 
         "type": "자기개발비", 
         "status": f"{approver_role} 승인 대기", 
         "created": datetime.now().strftime("%Y-%m-%d %H:%M:%S"), 
-        "approver": approver_role, 
+        "Approver": approver_role, 
         "cost": int(cost), 
         "content": json.dumps(content_data, ensure_ascii=False), 
         "file_path": file_path
@@ -277,7 +277,7 @@ def calculate_overtime(db: Session = Depends(get_db), current_user: User = Depen
 
 # --- Admin/Manager Routes ---
 @router.get("/approve-list")
-def approve_list(request: Request, db: Session = Depends(get_db), current_user: User = Depends(require_role(["admin", "approver", "lead"])), start_date: str = None, end_date: str = None, selected_name: str = None, request_type: str = None, page: int = 1, status_filter: str = None):
+def approve_list(request: Request, db: Session = Depends(get_db), current_user: User = Depends(require_role(["Admin", "Approver", "Lead"])), start_date: str = None, end_date: str = None, selected_name: str = None, request_type: str = None, page: int = 1, status_filter: str = None):
     print(f"request_type: {request_type}, status_filter: {status_filter}")
     # Fetch unique names for the dropdown
     names_result = db.execute(text("SELECT DISTINCT name FROM requests ORDER BY name ASC")).fetchall()
@@ -406,27 +406,27 @@ def approve_list(request: Request, db: Session = Depends(get_db), current_user: 
     })
 
 @router.get("/approve")
-def approve_request(id: int, db: Session = Depends(get_db), current_user: User = Depends(require_role(["admin", "approver", "lead"]))):
+def approve_request(id: int, db: Session = Depends(get_db), current_user: User = Depends(require_role(["Admin", "Approver", "Lead"]))):
     # Check if the current user has permission to approve
     current_approver_result = db.execute(text("SELECT approver FROM requests WHERE id = :id"), {"id": id}).fetchone()
     current_approver = current_approver_result[0]
 
-    if current_user.role not in ['admin', 'approver', 'lead']:
+    if current_user.role not in ['Admin', 'Approver', 'lead']:
         return RedirectResponse(url="/approve-list", status_code=303)
 
     # Final approval
-    if current_user.role == 'admin':
+    if current_user.role == 'Admin':
         db.execute(text("UPDATE requests SET status = :status, approver = :approver, approved_by_approver = :approved_by_approver, approved_by_approver_at = :approved_by_approver_at WHERE id = :id"), {
             "status": "approved", 
-            "approver": current_user.name, 
+            "Approver": current_user.name, 
             "approved_by_approver": current_user.name, 
             "approved_by_approver_at": datetime.now().strftime('%Y-%m-%d %H:%M:%S'), 
             "id": id
         })
-    elif current_user.role == 'approver':
+    elif current_user.role == 'Approver':
         db.execute(text("UPDATE requests SET status = :status, approver = :approver, approved_by_approver = :approved_by_approver, approved_by_approver_at = :approved_by_approver_at WHERE id = :id"), {
             "status": "approved", 
-            "approver": current_user.name, 
+            "Approver": current_user.name, 
             "approved_by_approver": current_user.name, 
             "approved_by_approver_at": datetime.now().strftime('%Y-%m-%d %H:%M:%S'), 
             "id": id
@@ -434,7 +434,7 @@ def approve_request(id: int, db: Session = Depends(get_db), current_user: User =
     else: # lead
         db.execute(text("UPDATE requests SET status = :status, approver = :approver, approved_by_lead = :approved_by_lead, approved_by_lead_at = :approved_by_lead_at WHERE id = :id"), {
             "status": "approved", 
-            "approver": current_user.name, 
+            "Approver": current_user.name, 
             "approved_by_lead": current_user.name, 
             "approved_by_lead_at": datetime.now().strftime('%Y-%m-%d %H:%M:%S'), 
             "id": id
@@ -445,11 +445,11 @@ def approve_request(id: int, db: Session = Depends(get_db), current_user: User =
     return RedirectResponse(url="/approve-list", status_code=303)
 
 @router.get("/reject")
-def reject_form(request: Request, id: int, current_user: User = Depends(require_role(["admin", "approver", "lead"]))):
+def reject_form(request: Request, id: int, current_user: User = Depends(require_role(["Admin", "Approver", "Lead"]))):
     return render_template("reject_form.html", {"request": request, "id": id, "current_user": current_user})
 
 @router.post("/reject")
-def reject_submit(id: int = Form(...), reason: str = Form(...), db: Session = Depends(get_db), current_user: User = Depends(require_role(["admin", "approver", "lead"]))):
+def reject_submit(id: int = Form(...), reason: str = Form(...), db: Session = Depends(get_db), current_user: User = Depends(require_role(["Admin", "Approver", "Lead"]))):
     db.execute(text("UPDATE requests SET status = 'rejected', reject_reason = :reason WHERE id = :id"), {"reason": reason, "id": id})
     db.commit()
     return RedirectResponse(url="/approve-list", status_code=303)
@@ -461,13 +461,13 @@ def delete_request(request_id: int, db: Session = Depends(get_db), current_user:
     return RedirectResponse(url="/dashboard", status_code=303)
 
 @router.get("/request/delete/admin/{request_id}")
-def admin_delete_request(request_id: int, db: Session = Depends(get_db), current_user: User = Depends(require_role(["admin", "approver", "lead"]))):
+def admin_delete_request(request_id: int, db: Session = Depends(get_db), current_user: User = Depends(require_role(["Admin", "Approver", "Lead"]))):
     db.execute(text("DELETE FROM requests WHERE id = :id"), {"id": request_id})
     db.commit()
     return RedirectResponse(url="/approve-list", status_code=303)
 
 @router.get("/download/{request_id}")
-def download_file(request_id: int, db: Session = Depends(get_db), current_user: User = Depends(require_role(["admin", "approver", "lead"]))):
+def download_file(request_id: int, db: Session = Depends(get_db), current_user: User = Depends(require_role(["Admin", "Approver", "Lead"]))):
     file_path_result = db.execute(text("SELECT file_path FROM requests WHERE id = :id"), {"id": request_id}).fetchone()
     file_path = file_path_result[0]
 

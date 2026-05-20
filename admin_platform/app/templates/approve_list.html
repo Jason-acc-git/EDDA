@@ -138,12 +138,12 @@
                             {% endif %}
                         </td>
                         <td>
-                            {% if (current_user.role == r.approver or current_user.role == 'admin') and r.status != 'approved' and r.status != 'rejected' %}
+                            {% if (current_user.role == "Approver" or current_user.role == 'Admin') and r.status != 'approved' and r.status != 'rejected' %}
                             <a href="/approve?id={{r.id}}" class="btn btn-sm btn-dark" onclick="return confirm('승인하시겠습니까?')">승인</a>
                             <a href="/reject?id={{r.id}}" class="btn btn-sm btn-outline-danger" onclick="return confirm('반려하시겠습니까?')">반려</a>
                             {% elif r.status == 'rejected' %}
                                 <a href="/reject/cancel/{{r.id}}" class="btn btn-sm btn-outline-secondary" onclick="return confirm('반려를 취소하시겠습니까?')">반려 취소</a>
-                            {% elif r.status == 'approved' and current_user.role in ['admin', 'manager', 'lead'] %}
+                            {% elif r.status == 'approved' and current_user.role in ['Admin', 'Manager', 'Lead'] %}
                                 <a href="/request/delete/admin/{{ r.id }}" class="btn btn-sm btn-outline-danger" onclick="return confirm('정말로 삭제하시겠습니까?')">삭제</a>
                             {% endif %}
                         </td>

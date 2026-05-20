@@ -13,16 +13,16 @@ router = APIRouter()
 templates = Jinja2Templates(directory="app/templates")
 
 @router.get("/employee/list")
-def employee_list(request: Request, db: Session = Depends(get_db), current_user: User = Depends(require_role(["admin", "lead"]))):
+def employee_list(request: Request, db: Session = Depends(get_db), current_user: User = Depends(require_role(["Admin", "Lead"]))):
     employees = db.execute(text("SELECT * FROM employees")).fetchall()
     return render_template("employee_list.html", {"request": request, "employees": employees, "current_user": current_user})
 
 @router.get("/employee/manage")
-def employee_manage_form(request: Request, current_user: User = Depends(require_role(["admin", "lead"]))):
+def employee_manage_form(request: Request, current_user: User = Depends(require_role(["Admin", "Lead"]))):
     return render_template("employee_manage.html", {"request": request, "current_user": current_user})
 
 @router.post("/employee/manage")
-def handle_employee_manage(name: str = Form(...), emp_no: str = Form(...), dept: str = Form(...), position: str = Form(...), work_type: str = Form(...), role: str = Form(...), email: str = Form(...), signature: UploadFile = File(None), db: Session = Depends(get_db), current_user: User = Depends(require_role(["admin", "lead"]))):
+def handle_employee_manage(name: str = Form(...), emp_no: str = Form(...), dept: str = Form(...), position: str = Form(...), work_type: str = Form(...), role: str = Form(...), email: str = Form(...), signature: UploadFile = File(None), db: Session = Depends(get_db), current_user: User = Depends(require_role(["Admin", "Lead"]))):
     signature_path = None
     if signature and signature.filename:
         signature_path = f"app/static/signatures/{signature.filename}"
@@ -40,7 +40,7 @@ def employee_edit_form(request: Request, id: int, db: Session = Depends(get_db),
     return render_template("employee_edit.html", {"request": request, "employee": employee, "current_user": current_user})
 
 @router.post("/employee/edit")
-def handle_employee_edit(id: int = Form(...), name: str = Form(...), emp_no: str = Form(...), dept: str = Form(...), position: str = Form(...), work_type: str = Form(...), role: str = Form(...), email: str = Form(...), signature: UploadFile = File(None), db: Session = Depends(get_db), current_user: User = Depends(require_role(["admin", "lead"]))):
+def handle_employee_edit(id: int = Form(...), name: str = Form(...), emp_no: str = Form(...), dept: str = Form(...), position: str = Form(...), work_type: str = Form(...), role: str = Form(...), email: str = Form(...), signature: UploadFile = File(None), db: Session = Depends(get_db), current_user: User = Depends(require_role(["Admin", "Lead"]))):
     update_fields = {
         "id": id,
         "name": name,

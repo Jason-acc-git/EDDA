@@ -46,10 +46,10 @@
                 <div class="mb-3">
                     <label class="form-label">권한</label>
                     <select name="role" class="form-select">
-                        <option value="employee" {% if employee[6] == "employee" %}selected{% endif %}>직원</option>
-                        <option value="lead" {% if employee[6] == "lead" %}selected{% endif %}>리드엔지니어</option>
-                        <option value="manager" {% if employee[6] == "manager" %}selected{% endif %}>팀장</option>
-                        <option value="admin" {% if employee[6] == "admin" %}selected{% endif %}>관리자</option>
+                        <option value="Employee" {% if employee[6] == "Employee" %}selected{% endif %}>직원</option>
+                        <option value="Lead" {% if employee[6] == "Lead" %}selected{% endif %}>리드엔지니어</option>
+                        <option value="Manager" {% if employee[6] == "Manager" %}selected{% endif %}>팀장</option>
+                        <option value="Admin" {% if employee[6] == "Admin" %}selected{% endif %}>관리자</option>
                     </select>
                 </div>
 
