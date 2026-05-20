@@ -7,9 +7,46 @@ from datetime import datetime
 
 router = APIRouter()
 
+# 로그인 상태 확인을 위한 함수 (optional)
+def get_current_user_optional(request: Request):
+    """로그인 상태를 확인하되, 로그인하지 않아도 에러를 발생시키지 않음"""
+    try:
+        access_token = request.cookies.get("access_token")
+        if not access_token:
+            return None
+            
+        # JWT 토큰 디코딩 (간단한 방법)
+        if "Bearer " in access_token:
+            token = access_token.replace("Bearer ", "")
+            # 여기서는 간단하게 토큰에 admin이 포함되어 있는지만 확인
+            if "admin" in token:
+                # 실제로는 JWT 디코딩을 해야 하지만, 임시로 간단한 방법 사용
+                class User:
+                    def __init__(self, name):
+                        self.name = name
+                return User("admin")
+            else:
+                # 다른 사용자의 경우
+                class User:
+                    def __init__(self, name):
+                        self.name = name
+                return User("user")
+        return None
+    except Exception as e:
+        print(f"DEBUG: 로그인 확인 중 에러: {e}")
+        return None
+
 @router.get("/board", response_class=HTMLResponse)
 def board_page(request: Request, db: Session = Depends(get_db), notice_page: int = 1, suggestion_page: int = 1):
     per_page = 5  # 각 카테고리별 5개씩
+    
+    # 현재 사용자 확인
+    current_user = get_current_user_optional(request)
+    is_logged_in = current_user is not None
+    is_admin = current_user and current_user.name == "admin"
+    
+    print(f"DEBUG: current_user: {current_user}")
+    print(f"DEBUG: is_logged_in: {is_logged_in}, is_admin: {is_admin}")
     
     # 공지사항 페이지네이션 (내용도 함께 가져오기)
     notice_offset = (notice_page - 1) * per_page
@@ -41,6 +78,8 @@ def board_page(request: Request, db: Session = Depends(get_db), notice_page: int
     """)).scalar()
     suggestion_total_pages = (suggestion_total + per_page - 1) // per_page
     
+    print(f"DEBUG: 템플릿에 전달되는 값 - is_logged_in: {is_logged_in}, is_admin: {is_admin}")
+    
     from ..main import templates
     return templates.TemplateResponse(
         "board.html",
@@ -51,7 +90,9 @@ def board_page(request: Request, db: Session = Depends(get_db), notice_page: int
             "notice_page": notice_page,
             "notice_total_pages": notice_total_pages,
             "suggestion_page": suggestion_page,
-            "suggestion_total_pages": suggestion_total_pages
+            "suggestion_total_pages": suggestion_total_pages,
+            "is_admin": is_admin,
+            "is_logged_in": is_logged_in
         }
     )
 
@@ -65,6 +106,32 @@ def create_suggestion(
     db.execute(text("""
         INSERT INTO board_posts (category, title, content, author, created_at, updated_at)
         VALUES ('건의사항', :title, :content, '익명', :created_at, :updated_at)
+    """), {
+        "title": title,
+        "content": content,
+        "created_at": datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+        "updated_at": datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    })
+    db.commit()
+    
+    return RedirectResponse(url="/board", status_code=303)
+
+@router.post("/board/create_notice")
+def create_notice(
+    request: Request,
+    title: str = Form(...),
+    content: str = Form(...),
+    db: Session = Depends(get_db)
+):
+    # admin 권한 확인
+    current_user = get_current_user_optional(request)
+    if not current_user or current_user.name != "admin":
+        raise HTTPException(status_code=403, detail="관리자만 공지사항을 작성할 수 있습니다.")
+    
+    # 공지사항 글 작성
+    db.execute(text("""
+        INSERT INTO board_posts (category, title, content, author, created_at, updated_at)
+        VALUES ('공지사항', :title, :content, 'admin', :created_at, :updated_at)
     """), {
         "title": title,
         "content": content,

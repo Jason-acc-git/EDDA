@@ -1,15 +1,45 @@
-2026-05-20 11:19:57 [32mINFO[0m:     Started server process [[36m16663[0m]
-2026-05-20 11:19:57 [32mINFO[0m:     Waiting for application startup.
-2026-05-20 11:19:57 [32mINFO[0m:     Application startup complete.
-2026-05-20 11:19:57 [32mINFO[0m:     Uvicorn running on [1mhttp://0.0.0.0:8000[0m (Press CTRL+C to quit)
-2026-05-20 11:20:01 [32mINFO[0m:     17.92.42.24:61254 - "[1mGET / HTTP/1.1[0m" [32m200 OK[0m
-2026-05-20 11:20:03 [32mINFO[0m:     17.92.42.24:61254 - "[1mGET /board HTTP/1.1[0m" [32m200 OK[0m
-2026-05-20 11:20:16 [32mINFO[0m:     17.92.42.24:61257 - "[1mGET / HTTP/1.1[0m" [32m200 OK[0m
-2026-05-20 11:20:21 [32mINFO[0m:     17.92.42.24:61259 - "[1mPOST /login HTTP/1.1[0m" [33m303 See Other[0m
-2026-05-20 11:20:21 [32mINFO[0m:     17.92.42.24:61259 - "[1mGET /dashboard HTTP/1.1[0m" [32m200 OK[0m
-2026-05-20 11:20:25 [32mINFO[0m:     17.92.42.24:61259 - "[1mGET /board HTTP/1.1[0m" [32m200 OK[0m
-2026-05-20 11:21:26 [32mINFO[0m:     17.92.42.24:61600 - "[1mPOST /board/create_suggestion HTTP/1.1[0m" [33m303 See Other[0m
-2026-05-20 11:21:26 [32mINFO[0m:     17.92.42.24:61600 - "[1mGET /board HTTP/1.1[0m" [32m200 OK[0m
-2026-05-20 11:22:04 [32mINFO[0m:     17.92.42.24:61601 - "[1mGET / HTTP/1.1[0m" [32m200 OK[0m
-2026-05-20 11:22:10 [32mINFO[0m:     17.92.42.24:61613 - "[1mPOST /login HTTP/1.1[0m" [33m303 See Other[0m
-2026-05-20 11:22:10 [32mINFO[0m:     17.92.42.24:61613 - "[1mGET /dashboard HTTP/1.1[0m" [32m200 OK[0m
+2026-05-20 14:26:16 [32mINFO[0m:     Started server process [[36m17615[0m]
+2026-05-20 14:26:16 [32mINFO[0m:     Waiting for application startup.
+2026-05-20 14:26:16 [32mINFO[0m:     Application startup complete.
+2026-05-20 14:26:16 [32mINFO[0m:     Uvicorn running on [1mhttp://0.0.0.0:8000[0m (Press CTRL+C to quit)
+2026-05-20 14:26:27 [32mINFO[0m:     17.92.42.24:51173 - "[1mPOST /login HTTP/1.1[0m" [33m303 See Other[0m
+2026-05-20 14:26:27 [32mINFO[0m:     17.92.42.24:51173 - "[1mGET /dashboard HTTP/1.1[0m" [32m200 OK[0m
+2026-05-20 14:26:28 DEBUG: current_user: <app.api.board_routes.get_current_user_optional.<locals>.User object at 0x10d1bbb60>
+2026-05-20 14:26:28 DEBUG: is_logged_in: True, is_admin: False
+2026-05-20 14:26:28 DEBUG: 템플릿에 전달되는 값 - is_logged_in: True, is_admin: False
+2026-05-20 14:26:28 [32mINFO[0m:     17.92.42.24:51173 - "[1mGET /board HTTP/1.1[0m" [32m200 OK[0m
+2026-05-20 14:26:29 [32mINFO[0m:     17.92.42.24:51173 - "[1mGET /dashboard HTTP/1.1[0m" [32m200 OK[0m
+2026-05-20 14:26:33 DEBUG: current_user: <app.api.board_routes.get_current_user_optional.<locals>.User object at 0x10d20c1a0>
+2026-05-20 14:26:33 DEBUG: is_logged_in: True, is_admin: False
+2026-05-20 14:26:33 DEBUG: 템플릿에 전달되는 값 - is_logged_in: True, is_admin: False
+2026-05-20 14:26:33 [32mINFO[0m:     17.92.42.24:51173 - "[1mGET /board HTTP/1.1[0m" [32m200 OK[0m
+2026-05-20 14:26:34 [32mINFO[0m:     17.92.42.24:51173 - "[1mGET /dashboard HTTP/1.1[0m" [32m200 OK[0m
+2026-05-20 14:26:36 DEBUG: current_user: <app.api.board_routes.get_current_user_optional.<locals>.User object at 0x10d20c590>
+2026-05-20 14:26:36 DEBUG: is_logged_in: True, is_admin: False
+2026-05-20 14:26:36 DEBUG: 템플릿에 전달되는 값 - is_logged_in: True, is_admin: False
+2026-05-20 14:26:36 [32mINFO[0m:     17.92.42.24:51173 - "[1mGET /board HTTP/1.1[0m" [32m200 OK[0m
+2026-05-20 14:26:37 [32mINFO[0m:     17.92.42.24:51173 - "[1mGET /dashboard HTTP/1.1[0m" [32m200 OK[0m
+2026-05-20 14:26:38 [32mINFO[0m:     17.92.43.48:57740 - "[1mGET / HTTP/1.1[0m" [32m200 OK[0m
+2026-05-20 14:26:38 [32mINFO[0m:     17.92.42.24:51173 - "[1mGET /logout HTTP/1.1[0m" [33m303 See Other[0m
+2026-05-20 14:26:38 [32mINFO[0m:     17.92.42.24:51173 - "[1mGET /?message=%EC%95%88%EC%A0%84%ED%95%98%EA%B2%8C+%EB%A1%9C%EA%B7%B8%EC%95%84%EC%9B%83%EB%90%98%EC%97%88%EC%8A%B5%EB%8B%88%EB%8B%A4. HTTP/1.1[0m" [32m200 OK[0m
+2026-05-20 14:26:40 DEBUG: current_user: None
+2026-05-20 14:26:40 DEBUG: is_logged_in: False, is_admin: None
+2026-05-20 14:26:40 DEBUG: 템플릿에 전달되는 값 - is_logged_in: False, is_admin: None
+2026-05-20 14:26:40 [32mINFO[0m:     17.92.42.24:51173 - "[1mGET /board HTTP/1.1[0m" [32m200 OK[0m
+2026-05-20 14:26:40 [32mINFO[0m:     17.92.42.24:51173 - "[1mGET / HTTP/1.1[0m" [32m200 OK[0m
+2026-05-20 14:26:42 DEBUG: current_user: None
+2026-05-20 14:26:42 DEBUG: is_logged_in: False, is_admin: None
+2026-05-20 14:26:42 DEBUG: 템플릿에 전달되는 값 - is_logged_in: False, is_admin: None
+2026-05-20 14:26:42 [32mINFO[0m:     17.92.42.24:51173 - "[1mGET /board HTTP/1.1[0m" [32m200 OK[0m
+2026-05-20 14:26:43 [32mINFO[0m:     17.92.42.24:51173 - "[1mGET / HTTP/1.1[0m" [32m200 OK[0m
+2026-05-20 14:26:43 [32mINFO[0m:     17.92.43.48:57741 - "[1mPOST /login HTTP/1.1[0m" [33m303 See Other[0m
+2026-05-20 14:26:44 [32mINFO[0m:     17.92.43.48:57741 - "[1mGET /dashboard HTTP/1.1[0m" [32m200 OK[0m
+2026-05-20 14:27:00 DEBUG: current_user: <app.api.board_routes.get_current_user_optional.<locals>.User object at 0x10d1b9e80>
+2026-05-20 14:27:00 DEBUG: is_logged_in: True, is_admin: False
+2026-05-20 14:27:00 DEBUG: 템플릿에 전달되는 값 - is_logged_in: True, is_admin: False
+2026-05-20 14:27:00 [32mINFO[0m:     17.92.43.48:57745 - "[1mGET /board HTTP/1.1[0m" [32m200 OK[0m
+2026-05-20 14:27:00 [32mINFO[0m:     17.92.43.48:57744 - "[1mGET /static/css/style.css HTTP/1.1[0m" [32m200 OK[0m
+2026-05-20 14:27:55 DEBUG: current_user: None
+2026-05-20 14:27:55 DEBUG: is_logged_in: False, is_admin: None
+2026-05-20 14:27:55 DEBUG: 템플릿에 전달되는 값 - is_logged_in: False, is_admin: None
+2026-05-20 14:27:55 [32mINFO[0m:     17.92.42.24:51187 - "[1mGET /board HTTP/1.1[0m" [32m200 OK[0m
