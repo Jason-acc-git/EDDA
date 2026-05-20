@@ -95,7 +95,7 @@ def handle_compensatory_leave(request: Request, leave_date: date = Form(...), ho
         "type": '대휴신청', 
         "content": content, 
         "status": f'{approver_role} 승인 대기', 
-        "Approver": approver_role,
+        "approver": approver_role,
         "created": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     })
     db.commit()
@@ -169,7 +169,7 @@ async def save_overtime(
         "type": "시간외 근무", 
         "status": f"{approver_role} 승인 대기", 
         "created": datetime.now().strftime("%Y-%m-%d %H:%M:%S"), 
-        "Approver": approver_role, 
+        "approver": approver_role, 
         "content": json.dumps(content_data, ensure_ascii=False)
     })
     db.commit()
@@ -204,7 +204,7 @@ def submit_business_trip(
         "type": "출장", 
         "status": f"{approver_role} 승인 대기", 
         "created": datetime.now().strftime("%Y-%m-%d %H:%M:%S"), 
-        "Approver": approver_role, 
+        "approver": approver_role, 
         "content": json.dumps(content_data, ensure_ascii=False)
     })
     db.commit()
@@ -242,7 +242,7 @@ def submit_self_development(
         "type": "자기개발비", 
         "status": f"{approver_role} 승인 대기", 
         "created": datetime.now().strftime("%Y-%m-%d %H:%M:%S"), 
-        "Approver": approver_role, 
+        "approver": approver_role, 
         "cost": int(cost), 
         "content": json.dumps(content_data, ensure_ascii=False), 
         "file_path": file_path
@@ -418,7 +418,7 @@ def approve_request(id: int, db: Session = Depends(get_db), current_user: User =
     if current_user.role == 'Admin':
         db.execute(text("UPDATE requests SET status = :status, approver = :approver, approved_by_approver = :approved_by_approver, approved_by_approver_at = :approved_by_approver_at WHERE id = :id"), {
             "status": "approved", 
-            "Approver": current_user.name, 
+            "approver": current_user.name, 
             "approved_by_approver": current_user.name, 
             "approved_by_approver_at": datetime.now().strftime('%Y-%m-%d %H:%M:%S'), 
             "id": id
@@ -426,7 +426,7 @@ def approve_request(id: int, db: Session = Depends(get_db), current_user: User =
     elif current_user.role == 'Approver':
         db.execute(text("UPDATE requests SET status = :status, approver = :approver, approved_by_approver = :approved_by_approver, approved_by_approver_at = :approved_by_approver_at WHERE id = :id"), {
             "status": "approved", 
-            "Approver": current_user.name, 
+            "approver": current_user.name, 
             "approved_by_approver": current_user.name, 
             "approved_by_approver_at": datetime.now().strftime('%Y-%m-%d %H:%M:%S'), 
             "id": id
@@ -434,7 +434,7 @@ def approve_request(id: int, db: Session = Depends(get_db), current_user: User =
     else: # lead
         db.execute(text("UPDATE requests SET status = :status, approver = :approver, approved_by_lead = :approved_by_lead, approved_by_lead_at = :approved_by_lead_at WHERE id = :id"), {
             "status": "approved", 
-            "Approver": current_user.name, 
+            "approver": current_user.name, 
             "approved_by_lead": current_user.name, 
             "approved_by_lead_at": datetime.now().strftime('%Y-%m-%d %H:%M:%S'), 
             "id": id

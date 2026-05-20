@@ -155,7 +155,7 @@ def board_category(request: Request, category: str, db: Session = Depends(get_db
     ))
 
 @router.post("/board/create_suggestion")
-def create_suggestion(request: Request, title: str = Form(...), content: str = Form(...), author: str = Form(...), db: Session = Depends(get_db)):
+def create_suggestion(request: Request, title: str = Form(...), content: str = Form(...), author: str = Form("익명"), db: Session = Depends(get_db)):
     # 건의사항은 누구나 작성 가능
     db.execute(text("""
         INSERT INTO board_posts (category, title, content, author, created_at, updated_at)
