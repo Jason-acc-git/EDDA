@@ -1,133 +1,112 @@
-from fastapi import APIRouter, Request, Depends, Form, HTTPException
+from fastapi import APIRouter, Request, Form, Depends, HTTPException
 from fastapi.responses import HTMLResponse, RedirectResponse
 from sqlalchemy.orm import Session
 from sqlalchemy import text
-from ..db.database import get_db
 from datetime import datetime
+import os
+
+from ..db.database import get_db
+from ..services.auth_service import get_current_user, get_token_from_cookie
+from ..models.schemas import User
 
 router = APIRouter()
 
-# 로그인 상태 확인을 위한 함수 (optional)
-def get_current_user_optional(request: Request):
+def get_current_user_optional(request: Request, db: Session = Depends(get_db)):
     """로그인 상태를 확인하되, 로그인하지 않아도 에러를 발생시키지 않음"""
     try:
-        access_token = request.cookies.get("access_token")
-        if not access_token:
+        # auth_service의 검증된 함수들 사용
+        # 모든 쿠키 출력
+        print(f"DEBUG: 모든 쿠키: {dict(request.cookies)}")
+        # 모든 쿠키 출력
+        print(f"DEBUG: 모든 쿠키: {dict(request.cookies)}")
+        token = get_token_from_cookie(request)
+        print(f"DEBUG: token = {token}")
+        
+        if not token:
+            print("DEBUG: token이 없음")
             return None
             
-        # JWT 토큰 디코딩 (간단한 방법)
-        if "Bearer " in access_token:
-            token = access_token.replace("Bearer ", "")
-            # 여기서는 간단하게 토큰에 admin이 포함되어 있는지만 확인
-            if "admin" in token:
-                # 실제로는 JWT 디코딩을 해야 하지만, 임시로 간단한 방법 사용
-                class User:
-                    def __init__(self, name):
-                        self.name = name
-                return User("admin")
-            else:
-                # 다른 사용자의 경우
-                class User:
-                    def __init__(self, name):
-                        self.name = name
-                return User("user")
-        return None
+        # get_current_user 함수 사용 (예외 처리로 감싸기)
+        try:
+            user = get_current_user(request, db, use_cache=False)
+            print(f"DEBUG: 인증 성공 - user: {user.name}")
+            return user
+        except HTTPException:
+            print("DEBUG: JWT 토큰 검증 실패")
+            return None
+            
     except Exception as e:
-        print(f"DEBUG: 로그인 확인 중 에러: {e}")
+        print(f"DEBUG: 인증 중 예외 발생: {e}")
         return None
 
 @router.get("/board", response_class=HTMLResponse)
-def board_page(request: Request, db: Session = Depends(get_db), notice_page: int = 1, suggestion_page: int = 1):
-    per_page = 5  # 각 카테고리별 5개씩
+def board_main(request: Request, db: Session = Depends(get_db), notice_page: int = 1, suggestion_page: int = 1):
+    per_page = 5
     
-    # 현재 사용자 확인
-    current_user = get_current_user_optional(request)
+    # 현재 사용자 확인 (로그인하지 않아도 접근 가능)
+    current_user = get_current_user_optional(request, db)
     is_logged_in = current_user is not None
-    is_admin = current_user and current_user.name == "admin"
-    
+    is_admin = current_user and current_user.role == "Admin"
+
     print(f"DEBUG: current_user: {current_user}")
+    if current_user:
+        print(f"DEBUG: current_user.name: '{current_user.name}'")
     print(f"DEBUG: is_logged_in: {is_logged_in}, is_admin: {is_admin}")
-    
+
     # 공지사항 페이지네이션 (내용도 함께 가져오기)
     notice_offset = (notice_page - 1) * per_page
     notices = db.execute(text("""
-        SELECT id, title, content, author, created_at 
-        FROM board_posts 
-        WHERE category = '공지사항' 
-        ORDER BY created_at DESC 
+        SELECT id, title, content, author, created_at
+        FROM board_posts
+        WHERE category = '공지사항'
+        ORDER BY created_at DESC
         LIMIT :limit OFFSET :offset
     """), {"limit": per_page, "offset": notice_offset}).fetchall()
-    
+
     notice_total = db.execute(text("""
         SELECT COUNT(*) FROM board_posts WHERE category = '공지사항'
     """)).scalar()
-    notice_total_pages = (notice_total + per_page - 1) // per_page
-    
+
     # 건의사항 페이지네이션 (내용도 함께 가져오기)
     suggestion_offset = (suggestion_page - 1) * per_page
     suggestions = db.execute(text("""
-        SELECT id, title, content, author, created_at 
-        FROM board_posts 
-        WHERE category = '건의사항' 
-        ORDER BY created_at DESC 
+        SELECT id, title, content, author, created_at
+        FROM board_posts
+        WHERE category = '건의사항'
+        ORDER BY created_at DESC
         LIMIT :limit OFFSET :offset
     """), {"limit": per_page, "offset": suggestion_offset}).fetchall()
-    
+
     suggestion_total = db.execute(text("""
         SELECT COUNT(*) FROM board_posts WHERE category = '건의사항'
     """)).scalar()
-    suggestion_total_pages = (suggestion_total + per_page - 1) // per_page
-    
-    print(f"DEBUG: 템플릿에 전달되는 값 - is_logged_in: {is_logged_in}, is_admin: {is_admin}")
-    
-    from ..main import templates
-    return templates.TemplateResponse(
-        "board.html",
-        {
-            "request": request,
-            "notices": notices,
-            "suggestions": suggestions,
-            "notice_page": notice_page,
-            "notice_total_pages": notice_total_pages,
-            "suggestion_page": suggestion_page,
-            "suggestion_total_pages": suggestion_total_pages,
-            "is_admin": is_admin,
-            "is_logged_in": is_logged_in
-        }
-    )
 
-@router.post("/board/create_suggestion")
-def create_suggestion(
-    title: str = Form(...),
-    content: str = Form(...),
-    db: Session = Depends(get_db)
-):
-    # 건의사항 글 작성 (작성자는 "익명"으로 고정)
-    db.execute(text("""
-        INSERT INTO board_posts (category, title, content, author, created_at, updated_at)
-        VALUES ('건의사항', :title, :content, '익명', :created_at, :updated_at)
-    """), {
-        "title": title,
-        "content": content,
-        "created_at": datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-        "updated_at": datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-    })
-    db.commit()
+    print(f"DEBUG: 템플릿에 전달되는 값 - is_logged_in: {is_logged_in}, is_admin: {is_admin}")
+
+    from jinja2 import Environment, FileSystemLoader
+    template_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "templates")
+    jinja_env = Environment(loader=FileSystemLoader(template_dir), cache_size=0, auto_reload=True)
+    template = jinja_env.get_template("board.html")
     
-    return RedirectResponse(url="/board", status_code=303)
+    return HTMLResponse(content=template.render(
+        request=request,
+        notices=notices,
+        suggestions=suggestions,
+        notice_page=notice_page,
+        suggestion_page=suggestion_page,
+        notice_total_pages=(notice_total + per_page - 1) // per_page,
+        suggestion_total_pages=(suggestion_total + per_page - 1) // per_page,
+        is_logged_in=is_logged_in,
+        is_admin=is_admin
+    ))
 
 @router.post("/board/create_notice")
-def create_notice(
-    request: Request,
-    title: str = Form(...),
-    content: str = Form(...),
-    db: Session = Depends(get_db)
-):
-    # admin 권한 확인
-    current_user = get_current_user_optional(request)
-    if not current_user or current_user.name != "admin":
+def create_notice(request: Request, title: str = Form(...), content: str = Form(...), db: Session = Depends(get_db)):
+    # 관리자 권한 확인
+    current_user = get_current_user_optional(request, db)
+    if not current_user or current_user.role != "Admin":
         raise HTTPException(status_code=403, detail="관리자만 공지사항을 작성할 수 있습니다.")
-    
+
     # 공지사항 글 작성
     db.execute(text("""
         INSERT INTO board_posts (category, title, content, author, created_at, updated_at)
@@ -139,7 +118,7 @@ def create_notice(
         "updated_at": datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     })
     db.commit()
-    
+
     return RedirectResponse(url="/board", status_code=303)
 
 @router.get("/board/{category}", response_class=HTMLResponse)
@@ -148,53 +127,46 @@ def board_category(request: Request, category: str, db: Session = Depends(get_db
     per_page = 10
     offset = (page - 1) * per_page
     
-    # 전체 게시글 수
-    total_count = db.execute(text("""
-        SELECT COUNT(*) FROM board_posts WHERE category = :category
-    """), {"category": category}).scalar()
-    
-    # 게시글 가져오기
     posts = db.execute(text("""
-        SELECT id, title, author, created_at 
-        FROM board_posts 
-        WHERE category = :category 
-        ORDER BY created_at DESC 
+        SELECT id, title, content, author, created_at
+        FROM board_posts
+        WHERE category = :category
+        ORDER BY created_at DESC
         LIMIT :limit OFFSET :offset
     """), {"category": category, "limit": per_page, "offset": offset}).fetchall()
-    
-    # 페이지 정보 계산
-    total_pages = (total_count + per_page - 1) // per_page
-    
-    from ..main import templates
-    return templates.TemplateResponse(
-        "board_category.html",
-        {
-            "request": request,
-            "category": category,
-            "posts": posts,
-            "current_page": page,
-            "total_pages": total_pages,
-            "total_count": total_count
-        }
-    )
 
-@router.get("/board/post/{post_id}", response_class=HTMLResponse)
-def board_post_detail(request: Request, post_id: int, db: Session = Depends(get_db)):
-    # 게시글 상세 정보
-    post = db.execute(text("""
-        SELECT id, category, title, content, author, created_at 
-        FROM board_posts 
-        WHERE id = :post_id
-    """), {"post_id": post_id}).fetchone()
+    total_posts = db.execute(text("""
+        SELECT COUNT(*) FROM board_posts WHERE category = :category
+    """), {"category": category}).scalar()
+
+    total_pages = (total_posts + per_page - 1) // per_page
+
+    from jinja2 import Environment, FileSystemLoader
+    template_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "templates")
+    jinja_env = Environment(loader=FileSystemLoader(template_dir), cache_size=0, auto_reload=True)
+    template = jinja_env.get_template("board_category.html")
     
-    if not post:
-        raise HTTPException(status_code=404, detail="게시글을 찾을 수 없습니다.")
-    
-    from ..main import templates
-    return templates.TemplateResponse(
-        "board_post.html",
-        {
-            "request": request,
-            "post": post
-        }
-    )
+    return HTMLResponse(content=template.render(
+        request=request,
+        posts=posts,
+        category=category,
+        page=page,
+        total_pages=total_pages
+    ))
+
+@router.post("/board/create_suggestion")
+def create_suggestion(request: Request, title: str = Form(...), content: str = Form(...), author: str = Form(...), db: Session = Depends(get_db)):
+    # 건의사항은 누구나 작성 가능
+    db.execute(text("""
+        INSERT INTO board_posts (category, title, content, author, created_at, updated_at)
+    VALUES ('건의사항', :title, :content, :author, :created_at, :updated_at)
+    """), {
+        "title": title,
+        "content": content,
+        "author": author,
+        "created_at": datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+        "updated_at": datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    })
+    db.commit()
+
+    return RedirectResponse(url="/board", status_code=303)

@@ -18,7 +18,7 @@
                     <div class="card-body">
                          <!-- 공지사항 섹션 -->
                          <div class="mb-5">
-                            <h4 class="text-primary mb-3">📢 공지사항</h4>
+                            <div class="d-flex justify-content-between align-items-center mb-3"><h4 class="text-primary mb-0">📢 공지사항</h4>{% if is_admin %}<button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#noticeModal">✏️ 글작성</button>{% endif %}</div>
                              <div class="accordion" id="noticeAccordion">
                                 {% for notice in notices %}
                                 <div class="accordion-item">

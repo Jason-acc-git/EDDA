@@ -86,7 +86,7 @@ def login(request: Request, name: str = Form(...), password: str = Form(...), db
         else:
             response = RedirectResponse(url="/dashboard", status_code=303)
         
-        response.set_cookie(key="access_token", value=f"Bearer {access_token}", httponly=True)
+        response.set_cookie(key="access_token", value=f"Bearer {access_token}", httponly=True, path="/")
         return response
     else:
         employees_result = db.execute(text("SELECT name FROM employees")).fetchall()
@@ -139,7 +139,7 @@ templates = GlobalTemplates()
 @app.get("/logout")
 def logout():
     response = RedirectResponse(url="/?message=안전하게+로그아웃되었습니다.", status_code=303)
-    response.delete_cookie(key="access_token")
+    response.delete_cookie(key="access_token", path="/")
     return response
 
 @app.get("/change-password")
@@ -164,7 +164,7 @@ def handle_change_password(request: Request, new_password: str = Form(...), conf
     db.commit()
 
     response = RedirectResponse(url="/?message=비밀번호가+성공적으로+변경되었습니다.+다시+로그인해주세요.", status_code=303)
-    response.delete_cookie(key="access_token")
+    response.delete_cookie(key="access_token", path="/")
     return response
 
 @app.get("/forgot-password", response_class=HTMLResponse)
@@ -211,7 +211,7 @@ def handle_change_password(request: Request, new_password: str = Form(...), conf
     db.commit()
 
     response = RedirectResponse(url="/?message=비밀번호가+성공적으로+변경되었습니다.+다시+로그인해주세요.", status_code=303)
-    response.delete_cookie(key="access_token")
+    response.delete_cookie(key="access_token", path="/")
     return response
 
 @app.get("/favicon.ico")

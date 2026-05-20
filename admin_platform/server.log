@@ -1,45 +1,47 @@
-2026-05-20 14:26:16 [32mINFO[0m:     Started server process [[36m17615[0m]
-2026-05-20 14:26:16 [32mINFO[0m:     Waiting for application startup.
-2026-05-20 14:26:16 [32mINFO[0m:     Application startup complete.
-2026-05-20 14:26:16 [32mINFO[0m:     Uvicorn running on [1mhttp://0.0.0.0:8000[0m (Press CTRL+C to quit)
-2026-05-20 14:26:27 [32mINFO[0m:     17.92.42.24:51173 - "[1mPOST /login HTTP/1.1[0m" [33m303 See Other[0m
-2026-05-20 14:26:27 [32mINFO[0m:     17.92.42.24:51173 - "[1mGET /dashboard HTTP/1.1[0m" [32m200 OK[0m
-2026-05-20 14:26:28 DEBUG: current_user: <app.api.board_routes.get_current_user_optional.<locals>.User object at 0x10d1bbb60>
-2026-05-20 14:26:28 DEBUG: is_logged_in: True, is_admin: False
-2026-05-20 14:26:28 DEBUG: 템플릿에 전달되는 값 - is_logged_in: True, is_admin: False
-2026-05-20 14:26:28 [32mINFO[0m:     17.92.42.24:51173 - "[1mGET /board HTTP/1.1[0m" [32m200 OK[0m
-2026-05-20 14:26:29 [32mINFO[0m:     17.92.42.24:51173 - "[1mGET /dashboard HTTP/1.1[0m" [32m200 OK[0m
-2026-05-20 14:26:33 DEBUG: current_user: <app.api.board_routes.get_current_user_optional.<locals>.User object at 0x10d20c1a0>
-2026-05-20 14:26:33 DEBUG: is_logged_in: True, is_admin: False
-2026-05-20 14:26:33 DEBUG: 템플릿에 전달되는 값 - is_logged_in: True, is_admin: False
-2026-05-20 14:26:33 [32mINFO[0m:     17.92.42.24:51173 - "[1mGET /board HTTP/1.1[0m" [32m200 OK[0m
-2026-05-20 14:26:34 [32mINFO[0m:     17.92.42.24:51173 - "[1mGET /dashboard HTTP/1.1[0m" [32m200 OK[0m
-2026-05-20 14:26:36 DEBUG: current_user: <app.api.board_routes.get_current_user_optional.<locals>.User object at 0x10d20c590>
-2026-05-20 14:26:36 DEBUG: is_logged_in: True, is_admin: False
-2026-05-20 14:26:36 DEBUG: 템플릿에 전달되는 값 - is_logged_in: True, is_admin: False
-2026-05-20 14:26:36 [32mINFO[0m:     17.92.42.24:51173 - "[1mGET /board HTTP/1.1[0m" [32m200 OK[0m
-2026-05-20 14:26:37 [32mINFO[0m:     17.92.42.24:51173 - "[1mGET /dashboard HTTP/1.1[0m" [32m200 OK[0m
-2026-05-20 14:26:38 [32mINFO[0m:     17.92.43.48:57740 - "[1mGET / HTTP/1.1[0m" [32m200 OK[0m
-2026-05-20 14:26:38 [32mINFO[0m:     17.92.42.24:51173 - "[1mGET /logout HTTP/1.1[0m" [33m303 See Other[0m
-2026-05-20 14:26:38 [32mINFO[0m:     17.92.42.24:51173 - "[1mGET /?message=%EC%95%88%EC%A0%84%ED%95%98%EA%B2%8C+%EB%A1%9C%EA%B7%B8%EC%95%84%EC%9B%83%EB%90%98%EC%97%88%EC%8A%B5%EB%8B%88%EB%8B%A4. HTTP/1.1[0m" [32m200 OK[0m
-2026-05-20 14:26:40 DEBUG: current_user: None
-2026-05-20 14:26:40 DEBUG: is_logged_in: False, is_admin: None
-2026-05-20 14:26:40 DEBUG: 템플릿에 전달되는 값 - is_logged_in: False, is_admin: None
-2026-05-20 14:26:40 [32mINFO[0m:     17.92.42.24:51173 - "[1mGET /board HTTP/1.1[0m" [32m200 OK[0m
-2026-05-20 14:26:40 [32mINFO[0m:     17.92.42.24:51173 - "[1mGET / HTTP/1.1[0m" [32m200 OK[0m
-2026-05-20 14:26:42 DEBUG: current_user: None
-2026-05-20 14:26:42 DEBUG: is_logged_in: False, is_admin: None
-2026-05-20 14:26:42 DEBUG: 템플릿에 전달되는 값 - is_logged_in: False, is_admin: None
-2026-05-20 14:26:42 [32mINFO[0m:     17.92.42.24:51173 - "[1mGET /board HTTP/1.1[0m" [32m200 OK[0m
-2026-05-20 14:26:43 [32mINFO[0m:     17.92.42.24:51173 - "[1mGET / HTTP/1.1[0m" [32m200 OK[0m
-2026-05-20 14:26:43 [32mINFO[0m:     17.92.43.48:57741 - "[1mPOST /login HTTP/1.1[0m" [33m303 See Other[0m
-2026-05-20 14:26:44 [32mINFO[0m:     17.92.43.48:57741 - "[1mGET /dashboard HTTP/1.1[0m" [32m200 OK[0m
-2026-05-20 14:27:00 DEBUG: current_user: <app.api.board_routes.get_current_user_optional.<locals>.User object at 0x10d1b9e80>
-2026-05-20 14:27:00 DEBUG: is_logged_in: True, is_admin: False
-2026-05-20 14:27:00 DEBUG: 템플릿에 전달되는 값 - is_logged_in: True, is_admin: False
-2026-05-20 14:27:00 [32mINFO[0m:     17.92.43.48:57745 - "[1mGET /board HTTP/1.1[0m" [32m200 OK[0m
-2026-05-20 14:27:00 [32mINFO[0m:     17.92.43.48:57744 - "[1mGET /static/css/style.css HTTP/1.1[0m" [32m200 OK[0m
-2026-05-20 14:27:55 DEBUG: current_user: None
-2026-05-20 14:27:55 DEBUG: is_logged_in: False, is_admin: None
-2026-05-20 14:27:55 DEBUG: 템플릿에 전달되는 값 - is_logged_in: False, is_admin: None
-2026-05-20 14:27:55 [32mINFO[0m:     17.92.42.24:51187 - "[1mGET /board HTTP/1.1[0m" [32m200 OK[0m
+2026-05-20 15:25:27 [32mINFO[0m:     Started server process [[36m18365[0m]
+2026-05-20 15:25:27 [32mINFO[0m:     Waiting for application startup.
+2026-05-20 15:25:27 [32mINFO[0m:     Application startup complete.
+2026-05-20 15:25:27 [32mINFO[0m:     Uvicorn running on [1mhttp://0.0.0.0:8000[0m (Press CTRL+C to quit)
+2026-05-20 15:25:39 [32mINFO[0m:     17.92.42.24:54824 - "[1mGET /dashboard HTTP/1.1[0m" [32m200 OK[0m
+2026-05-20 15:25:39 [32mINFO[0m:     17.92.42.24:54824 - "[1mGET /static/images/login.gif HTTP/1.1[0m" [32m200 OK[0m
+2026-05-20 15:25:39 [32mINFO[0m:     17.92.42.24:54825 - "[1mGET /static/css/style.css?v=2.4 HTTP/1.1[0m" [32m200 OK[0m
+2026-05-20 15:25:39 [32mINFO[0m:     17.92.42.24:54831 - "[1mGET /static/manifest.json HTTP/1.1[0m" [32m200 OK[0m
+2026-05-20 15:25:39 [32mINFO[0m:     17.92.42.24:54824 - "[1mGET /static/images/apple-touch-icon-180x180.png HTTP/1.1[0m" [32m200 OK[0m
+2026-05-20 15:25:39 [32mINFO[0m:     17.92.42.24:54824 - "[1mGET /static/images/android-chrome-192x192.png HTTP/1.1[0m" [32m200 OK[0m
+2026-05-20 15:25:39 [32mINFO[0m:     17.92.42.24:54824 - "[1mGET /static/images/android-chrome-512x512.png HTTP/1.1[0m" [32m200 OK[0m
+2026-05-20 15:25:39 [32mINFO[0m:     17.92.42.24:54824 - "[1mGET /static/images/apple-touch-icon-180x180.png HTTP/1.1[0m" [32m200 OK[0m
+2026-05-20 15:25:41 [32mINFO[0m:     17.92.42.24:54824 - "[1mGET /logout HTTP/1.1[0m" [33m303 See Other[0m
+2026-05-20 15:25:41 [32mINFO[0m:     17.92.42.24:54824 - "[1mGET /?message=%EC%95%88%EC%A0%84%ED%95%98%EA%B2%8C+%EB%A1%9C%EA%B7%B8%EC%95%84%EC%9B%83%EB%90%98%EC%97%88%EC%8A%B5%EB%8B%88%EB%8B%A4. HTTP/1.1[0m" [32m200 OK[0m
+2026-05-20 15:25:41 [32mINFO[0m:     17.92.42.24:54824 - "[1mGET /static/images/login.gif HTTP/1.1[0m" [32m200 OK[0m
+2026-05-20 15:25:41 [32mINFO[0m:     17.92.42.24:54825 - "[1mGET /static/css/style.css?v=1.5 HTTP/1.1[0m" [32m200 OK[0m
+2026-05-20 15:25:43 DEBUG: 모든 쿠키: {}
+2026-05-20 15:25:43 DEBUG: 모든 쿠키: {}
+2026-05-20 15:25:43 DEBUG: token = None
+2026-05-20 15:25:43 DEBUG: token이 없음
+2026-05-20 15:25:43 DEBUG: current_user: None
+2026-05-20 15:25:43 DEBUG: is_logged_in: False, is_admin: None
+2026-05-20 15:25:43 DEBUG: 템플릿에 전달되는 값 - is_logged_in: False, is_admin: None
+2026-05-20 15:25:43 [32mINFO[0m:     17.92.42.24:54824 - "[1mGET /board HTTP/1.1[0m" [32m200 OK[0m
+2026-05-20 15:25:43 [32mINFO[0m:     17.92.42.24:54824 - "[1mGET /static/css/style.css HTTP/1.1[0m" [32m200 OK[0m
+2026-05-20 15:25:45 [32mINFO[0m:     17.92.42.24:54824 - "[1mGET / HTTP/1.1[0m" [32m200 OK[0m
+2026-05-20 15:25:45 [32mINFO[0m:     17.92.42.24:54824 - "[1mGET /static/css/style.css?v=1.5 HTTP/1.1[0m" [32m200 OK[0m
+2026-05-20 15:25:45 [32mINFO[0m:     17.92.42.24:54825 - "[1mGET /static/images/login.gif HTTP/1.1[0m" [32m200 OK[0m
+2026-05-20 15:25:50 [32mINFO[0m:     17.92.42.24:54825 - "[1mPOST /login HTTP/1.1[0m" [33m303 See Other[0m
+2026-05-20 15:25:50 [32mINFO[0m:     17.92.42.24:54825 - "[1mGET /dashboard HTTP/1.1[0m" [32m200 OK[0m
+2026-05-20 15:25:50 [32mINFO[0m:     17.92.42.24:54825 - "[1mGET /static/css/style.css?v=2.4 HTTP/1.1[0m" [32m200 OK[0m
+2026-05-20 15:25:50 [32mINFO[0m:     17.92.42.24:54824 - "[1mGET /static/images/login.gif HTTP/1.1[0m" [32m200 OK[0m
+2026-05-20 15:25:50 [32mINFO[0m:     17.92.42.24:54874 - "[1mGET /static/manifest.json HTTP/1.1[0m" [32m200 OK[0m
+2026-05-20 15:25:50 [32mINFO[0m:     17.92.42.24:54824 - "[1mGET /static/images/apple-touch-icon-180x180.png HTTP/1.1[0m" [32m200 OK[0m
+2026-05-20 15:25:50 [32mINFO[0m:     17.92.42.24:54824 - "[1mGET /static/images/android-chrome-192x192.png HTTP/1.1[0m" [32m200 OK[0m
+2026-05-20 15:25:50 [32mINFO[0m:     17.92.42.24:54824 - "[1mGET /static/images/android-chrome-512x512.png HTTP/1.1[0m" [32m200 OK[0m
+2026-05-20 15:25:50 [32mINFO[0m:     17.92.42.24:54824 - "[1mGET /static/images/apple-touch-icon-180x180.png HTTP/1.1[0m" [32m200 OK[0m
+2026-05-20 15:25:51 DEBUG: 모든 쿠키: {'access_token': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJcdWM4MDRcdWMwYzFcdWQ2MDQiLCJleHAiOjE3NzkyNjAxNTB9.ZVRhadkLAXaRi_jxpfggJ1PHBR9nr5RFmW7EGnrvOHE'}
+2026-05-20 15:25:51 DEBUG: 모든 쿠키: {'access_token': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJcdWM4MDRcdWMwYzFcdWQ2MDQiLCJleHAiOjE3NzkyNjAxNTB9.ZVRhadkLAXaRi_jxpfggJ1PHBR9nr5RFmW7EGnrvOHE'}
+2026-05-20 15:25:51 DEBUG: token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJcdWM4MDRcdWMwYzFcdWQ2MDQiLCJleHAiOjE3NzkyNjAxNTB9.ZVRhadkLAXaRi_jxpfggJ1PHBR9nr5RFmW7EGnrvOHE
+2026-05-20 15:25:51 DEBUG: 인증 성공 - user: 전상현
+2026-05-20 15:25:51 DEBUG: current_user: name='전상현' role='Admin'
+2026-05-20 15:25:51 DEBUG: current_user.name: '전상현'
+2026-05-20 15:25:51 DEBUG: is_logged_in: True, is_admin: True
+2026-05-20 15:25:51 DEBUG: 템플릿에 전달되는 값 - is_logged_in: True, is_admin: True
+2026-05-20 15:25:51 [32mINFO[0m:     17.92.42.24:54824 - "[1mGET /board HTTP/1.1[0m" [32m200 OK[0m
+2026-05-20 15:25:51 [32mINFO[0m:     17.92.42.24:54824 - "[1mGET /static/css/style.css HTTP/1.1[0m" [32m200 OK[0m
