@@ -1,3 +1,4 @@
+
 from datetime import datetime, timedelta
 from fastapi import FastAPI, Request, Form, Depends
 from fastapi.responses import RedirectResponse, HTMLResponse, JSONResponse
@@ -5,6 +6,7 @@ from fastapi.staticfiles import StaticFiles
 import json
 from sqlalchemy.orm import Session
 from sqlalchemy import text
+from .api import admin_routes, employee_routes, request_routes, board_routes
 import os
 
 def get_pending_approvals_count():
@@ -109,6 +111,12 @@ def dashboard(request: Request, page: int = 1, db: Session = Depends(get_db), cu
 def test():
     return {"message": "Server is working"}
 
+#app.include_router(employee_routes.router)
+#app.include_router(request_routes.router)
+#app.include_router(board_routes.router)
+#app.include_router(admin_routes.router)
+
+app.include_router(board_routes.router)
 app.include_router(employee_routes.router)
 app.include_router(request_routes.router)
 app.include_router(admin_routes.router)
