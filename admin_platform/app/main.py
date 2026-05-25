@@ -45,6 +45,7 @@ jinja_env.filters['fromjson'] = json.loads
 jinja_env.filters['to_datetime'] = lambda s: datetime.strptime(s, '%Y-%m-%d') if s else None
 
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
+app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
 @app.on_event("startup")
 def startup():

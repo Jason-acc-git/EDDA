@@ -1,3 +1,6 @@
+from fastapi import UploadFile, File
+import shutil
+import uuid
 from fastapi import APIRouter, Request, Form, Depends, HTTPException
 from fastapi.responses import HTMLResponse, RedirectResponse
 from sqlalchemy.orm import Session
@@ -10,6 +13,26 @@ from ..services.auth_service import get_current_user, get_token_from_cookie
 from ..models.schemas import User
 
 router = APIRouter()
+
+def save_board_file(file: UploadFile) -> str:
+    """게시판 파일 저장"""
+    if not file or not file.filename:
+        return None
+    
+    # uploads/board 디렉토리 생성
+    upload_dir = "uploads/board"
+    os.makedirs(upload_dir, exist_ok=True)
+    
+    # 고유한 파일명 생성
+    file_extension = os.path.splitext(file.filename)[1]
+    unique_filename = f"{uuid.uuid4()}{file_extension}"
+    file_path = os.path.join(upload_dir, unique_filename)
+    
+    # 파일 저장
+    with open(file_path, "wb") as buffer:
+        shutil.copyfileobj(file.file, buffer)
+    
+    return file_path
 
 def get_current_user_optional(request: Request, db: Session = Depends(get_db)):
     """로그인 상태를 확인하되, 로그인하지 않아도 에러를 발생시키지 않음"""
@@ -56,7 +79,7 @@ def board_main(request: Request, db: Session = Depends(get_db), notice_page: int
     # 공지사항 페이지네이션 (내용도 함께 가져오기)
     notice_offset = (notice_page - 1) * per_page
     notices = db.execute(text("""
-        SELECT id, title, content, author, created_at
+        SELECT id, title, content, author, created_at, file_path
         FROM board_posts
         WHERE category = '공지사항'
         ORDER BY created_at DESC
@@ -70,7 +93,7 @@ def board_main(request: Request, db: Session = Depends(get_db), notice_page: int
     # 건의사항 페이지네이션 (내용도 함께 가져오기)
     suggestion_offset = (suggestion_page - 1) * per_page
     suggestions = db.execute(text("""
-        SELECT id, title, content, author, created_at
+        SELECT id, title, content, author, created_at, file_path
         FROM board_posts
         WHERE category = '건의사항'
         ORDER BY created_at DESC
@@ -101,21 +124,25 @@ def board_main(request: Request, db: Session = Depends(get_db), notice_page: int
     ))
 
 @router.post("/board/create_notice")
-def create_notice(request: Request, title: str = Form(...), content: str = Form(...), db: Session = Depends(get_db)):
+def create_notice(request: Request, title: str = Form(...), content: str = Form(...), file: UploadFile = File(None), db: Session = Depends(get_db)):
     # 관리자 권한 확인
+
+    # 파일 저장
+    file_path = save_board_file(file) if file else None
     current_user = get_current_user_optional(request, db)
     if not current_user or current_user.role != "Admin":
         raise HTTPException(status_code=403, detail="관리자만 공지사항을 작성할 수 있습니다.")
 
     # 공지사항 글 작성
     db.execute(text("""
-        INSERT INTO board_posts (category, title, content, author, created_at, updated_at)
-        VALUES ('공지사항', :title, :content, 'admin', :created_at, :updated_at)
+        INSERT INTO board_posts (category, title, content, author, created_at, updated_at, file_path)
+        VALUES ('공지사항', :title, :content, 'admin', :created_at, :updated_at, :file_path)
     """), {
         "title": title,
         "content": content,
         "created_at": datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-        "updated_at": datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        "updated_at": datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+        "file_path": file_path
     })
     db.commit()
 
@@ -128,7 +155,7 @@ def board_category(request: Request, category: str, db: Session = Depends(get_db
     offset = (page - 1) * per_page
     
     posts = db.execute(text("""
-        SELECT id, title, content, author, created_at
+        SELECT id, title, content, author, created_at, file_path
         FROM board_posts
         WHERE category = :category
         ORDER BY created_at DESC
@@ -155,17 +182,20 @@ def board_category(request: Request, category: str, db: Session = Depends(get_db
     ))
 
 @router.post("/board/create_suggestion")
-def create_suggestion(request: Request, title: str = Form(...), content: str = Form(...), author: str = Form("익명"), db: Session = Depends(get_db)):
+def create_suggestion(request: Request, title: str = Form(...), content: str = Form(...), author: str = Form("익명"), file: UploadFile = File(None), db: Session = Depends(get_db)):
     # 건의사항은 누구나 작성 가능
+    # 파일 저장
+    file_path = save_board_file(file) if file else None
     db.execute(text("""
-        INSERT INTO board_posts (category, title, content, author, created_at, updated_at)
-    VALUES ('건의사항', :title, :content, :author, :created_at, :updated_at)
+        INSERT INTO board_posts (category, title, content, author, created_at, updated_at, file_path)
+    VALUES ('건의사항', :title, :content, :author, :created_at, :updated_at, :file_path)
     """), {
         "title": title,
         "content": content,
         "author": author,
         "created_at": datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-        "updated_at": datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        "updated_at": datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+        "file_path": file_path
     })
     db.commit()
 

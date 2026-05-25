@@ -36,6 +36,14 @@
                                     <div id="notice-collapse-{{ notice.id }}" class="accordion-collapse collapse" aria-labelledby="notice-heading-{{ notice.id }}" data-bs-parent="#noticeAccordion">
                                         <div class="accordion-body">
                                             <p style="white-space: pre-wrap;">{{ notice.content }}</p>
+                                            {% if notice.file_path %}
+                                            <div class="mt-3 p-2 bg-light rounded">
+                                                <i class="fas fa-paperclip text-primary"></i>
+                                                <a href="/{{ notice.file_path }}" target="_blank" class="text-decoration-none text-primary ms-1">
+                                                    📎 첨부파일 보기
+                                                </a>
+                                            </div>
+                                            {% endif %}
                                         </div>
                                     </div>
                                 </div>
@@ -84,6 +92,14 @@
                                     <div id="suggestion-collapse-{{ suggestion.id }}" class="accordion-collapse collapse" aria-labelledby="suggestion-heading-{{ suggestion.id }}" data-bs-parent="#suggestionAccordion">
                                         <div class="accordion-body">
                                             <p style="white-space: pre-wrap;">{{ suggestion.content }}</p>
+                                            {% if suggestion.file_path %}
+                                            <div class="mt-3 p-2 bg-light rounded">
+                                                <i class="fas fa-paperclip text-primary"></i>
+                                                <a href="/{{ suggestion.file_path }}" target="_blank" class="text-decoration-none text-primary ms-1">
+                                                    📎 첨부파일 보기
+                                                </a>
+                                            </div>
+                                            {% endif %}
                                         </div>
                                     </div>
                                 </div>
@@ -125,7 +141,7 @@
                     <h5 class="modal-title" id="suggestionModalLabel">💡 건의사항 작성</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <form method="POST" action="/board/create_suggestion">
+                <form method="POST" action="/board/create_suggestion" enctype="multipart/form-data">
                     <div class="modal-body">
                         <div class="mb-3">
                             <label for="title" class="form-label">제목</label>
@@ -134,6 +150,10 @@
                         <div class="mb-3">
                             <label for="content" class="form-label">내용</label>
                             <textarea class="form-control" id="content" name="content" rows="8" required placeholder="건의사항 내용을 입력하세요"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="suggestion_file" class="form-label">파일 첨부 (선택사항)</label>
+                            <input type="file" class="form-control" id="suggestion_file" name="file" accept="image/*,.pdf,.doc,.docx,.txt">
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -157,7 +177,7 @@
                     <h5 class="modal-title" id="noticeModalLabel">📢 공지사항 작성</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <form method="POST" action="/board/create_notice">
+                <form method="POST" action="/board/create_notice" enctype="multipart/form-data">
                     <div class="modal-body">
                         <div class="mb-3">
                             <label for="notice_title" class="form-label">제목</label>
@@ -166,6 +186,10 @@
                         <div class="mb-3">
                             <label for="notice_content" class="form-label">내용</label>
                             <textarea class="form-control" id="notice_content" name="content" rows="8" required placeholder="공지사항 내용을 입력하세요"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="notice_file" class="form-label">파일 첨부 (선택사항)</label>
+                            <input type="file" class="form-control" id="notice_file" name="file" accept="image/*,.pdf,.doc,.docx,.txt">
                         </div>
                     </div>
                     <div class="modal-footer">
