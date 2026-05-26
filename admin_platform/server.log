@@ -303,3 +303,49 @@
 2026-05-27 08:01:51 [32mINFO[0m:     17.92.43.33:58771 - "[1mGET /request/business-trip HTTP/1.1[0m" [32m200 OK[0m
 2026-05-27 08:01:51 [32mINFO[0m:     17.92.43.33:58770 - "[1mGET /static/images/trip.gif HTTP/1.1[0m" [32m200 OK[0m
 2026-05-27 08:01:51 [32mINFO[0m:     17.92.43.33:58771 - "[1mGET /static/images/favicon-16x16.png HTTP/1.1[0m" [32m200 OK[0m
+2026-05-27 08:06:40 [32mINFO[0m:     17.92.42.24:52735 - "[1mPOST /login HTTP/1.1[0m" [33m303 See Other[0m
+2026-05-27 08:06:40 [32mINFO[0m:     17.92.42.24:52735 - "[1mGET /dashboard HTTP/1.1[0m" [32m200 OK[0m
+2026-05-27 08:07:55 [32mINFO[0m:     17.92.43.197:49371 - "[1mGET / HTTP/1.1[0m" [32m200 OK[0m
+2026-05-27 08:08:11 DEBUG: 모든 쿠키: {'access_token': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJcdWM4MDRcdWMwYzFcdWQ2MDQiLCJleHAiOjE3Nzk4Mzg2MDB9.499rAL3CF_jCjaj9PmuW5SvBy7hP7flSy-7Sqo8pYHs'}
+2026-05-27 08:08:11 DEBUG: 모든 쿠키: {'access_token': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJcdWM4MDRcdWMwYzFcdWQ2MDQiLCJleHAiOjE3Nzk4Mzg2MDB9.499rAL3CF_jCjaj9PmuW5SvBy7hP7flSy-7Sqo8pYHs'}
+2026-05-27 08:08:11 DEBUG: token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJcdWM4MDRcdWMwYzFcdWQ2MDQiLCJleHAiOjE3Nzk4Mzg2MDB9.499rAL3CF_jCjaj9PmuW5SvBy7hP7flSy-7Sqo8pYHs
+2026-05-27 08:08:11 DEBUG: 인증 성공 - user: 전상현
+2026-05-27 08:08:11 DEBUG: current_user: name='전상현' role='Admin'
+2026-05-27 08:08:11 DEBUG: current_user.name: '전상현'
+2026-05-27 08:08:11 DEBUG: is_logged_in: True, is_admin: True
+2026-05-27 08:08:11 DEBUG: 템플릿에 전달되는 값 - is_logged_in: True, is_admin: True
+2026-05-27 08:08:11 [32mINFO[0m:     17.92.42.24:52806 - "[1mGET /board HTTP/1.1[0m" [32m200 OK[0m
+2026-05-27 08:08:54 [32mINFO[0m:     17.92.42.24:52813 - "[1mGET /dashboard HTTP/1.1[0m" [32m200 OK[0m
+2026-05-27 08:08:58 [32mINFO[0m:     17.92.42.24:52813 - "[1mGET /request/overtime HTTP/1.1[0m" [32m200 OK[0m
+2026-05-27 08:08:58 [32mINFO[0m:     17.92.42.24:52813 - "[1mPOST /request/overtime/calculate HTTP/1.1[0m" [32m200 OK[0m
+2026-05-27 08:11:15 DEBUG: 모든 쿠키: {'access_token': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJcdWM4MDRcdWMwYzFcdWQ2MDQiLCJleHAiOjE3Nzk4Mzg2MDB9.499rAL3CF_jCjaj9PmuW5SvBy7hP7flSy-7Sqo8pYHs'}
+2026-05-27 08:11:15 DEBUG: 모든 쿠키: {'access_token': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJcdWM4MDRcdWMwYzFcdWQ2MDQiLCJleHAiOjE3Nzk4Mzg2MDB9.499rAL3CF_jCjaj9PmuW5SvBy7hP7flSy-7Sqo8pYHs'}
+2026-05-27 08:11:15 DEBUG: token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJcdWM4MDRcdWMwYzFcdWQ2MDQiLCJleHAiOjE3Nzk4Mzg2MDB9.499rAL3CF_jCjaj9PmuW5SvBy7hP7flSy-7Sqo8pYHs
+2026-05-27 08:11:15 DEBUG: 인증 성공 - user: 전상현
+2026-05-27 08:11:15 DEBUG: current_user: name='전상현' role='Admin'
+2026-05-27 08:11:15 DEBUG: current_user.name: '전상현'
+2026-05-27 08:11:15 DEBUG: is_logged_in: True, is_admin: True
+2026-05-27 08:11:15 DEBUG: 템플릿에 전달되는 값 - is_logged_in: True, is_admin: True
+2026-05-27 08:11:15 [32mINFO[0m:     17.92.42.24:53244 - "[1mGET /board HTTP/1.1[0m" [32m200 OK[0m
+2026-05-27 08:18:49 [32mINFO[0m:     17.92.42.24:53284 - "[1mGET /dashboard HTTP/1.1[0m" [32m200 OK[0m
+2026-05-27 08:18:50 DEBUG: 모든 쿠키: {'access_token': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJcdWM4MDRcdWMwYzFcdWQ2MDQiLCJleHAiOjE3Nzk4Mzg2MDB9.499rAL3CF_jCjaj9PmuW5SvBy7hP7flSy-7Sqo8pYHs'}
+2026-05-27 08:18:50 DEBUG: 모든 쿠키: {'access_token': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJcdWM4MDRcdWMwYzFcdWQ2MDQiLCJleHAiOjE3Nzk4Mzg2MDB9.499rAL3CF_jCjaj9PmuW5SvBy7hP7flSy-7Sqo8pYHs'}
+2026-05-27 08:18:50 DEBUG: token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJcdWM4MDRcdWMwYzFcdWQ2MDQiLCJleHAiOjE3Nzk4Mzg2MDB9.499rAL3CF_jCjaj9PmuW5SvBy7hP7flSy-7Sqo8pYHs
+2026-05-27 08:18:50 DEBUG: 인증 성공 - user: 전상현
+2026-05-27 08:18:50 DEBUG: current_user: name='전상현' role='Admin'
+2026-05-27 08:18:50 DEBUG: current_user.name: '전상현'
+2026-05-27 08:18:50 DEBUG: is_logged_in: True, is_admin: True
+2026-05-27 08:18:50 DEBUG: 템플릿에 전달되는 값 - is_logged_in: True, is_admin: True
+2026-05-27 08:18:50 [32mINFO[0m:     17.92.42.24:53284 - "[1mGET /board HTTP/1.1[0m" [32m200 OK[0m
+2026-05-27 08:18:50 [32mINFO[0m:     17.92.42.24:53284 - "[1mGET /static/images/board.gif HTTP/1.1[0m" [32m200 OK[0m
+2026-05-27 08:20:09 DEBUG: 모든 쿠키: {'access_token': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJcdWM4MDRcdWMwYzFcdWQ2MDQiLCJleHAiOjE3Nzk4Mzg2MDB9.499rAL3CF_jCjaj9PmuW5SvBy7hP7flSy-7Sqo8pYHs'}
+2026-05-27 08:20:09 DEBUG: 모든 쿠키: {'access_token': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJcdWM4MDRcdWMwYzFcdWQ2MDQiLCJleHAiOjE3Nzk4Mzg2MDB9.499rAL3CF_jCjaj9PmuW5SvBy7hP7flSy-7Sqo8pYHs'}
+2026-05-27 08:20:09 DEBUG: token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJcdWM4MDRcdWMwYzFcdWQ2MDQiLCJleHAiOjE3Nzk4Mzg2MDB9.499rAL3CF_jCjaj9PmuW5SvBy7hP7flSy-7Sqo8pYHs
+2026-05-27 08:20:09 DEBUG: 인증 성공 - user: 전상현
+2026-05-27 08:20:09 DEBUG: current_user: name='전상현' role='Admin'
+2026-05-27 08:20:09 DEBUG: current_user.name: '전상현'
+2026-05-27 08:20:09 DEBUG: is_logged_in: True, is_admin: True
+2026-05-27 08:20:09 DEBUG: 템플릿에 전달되는 값 - is_logged_in: True, is_admin: True
+2026-05-27 08:20:09 [32mINFO[0m:     17.92.42.24:53291 - "[1mGET /board HTTP/1.1[0m" [32m200 OK[0m
+2026-05-27 08:20:09 [32mINFO[0m:     17.92.42.24:53291 - "[1mGET /favicon.ico HTTP/1.1[0m" [33m307 Temporary Redirect[0m
+2026-05-27 08:20:09 [32mINFO[0m:     17.92.42.24:53291 - "[1mGET /static/images/favicon-32x32.png HTTP/1.1[0m" [33m304 Not Modified[0m
