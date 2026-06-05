@@ -189,9 +189,6 @@
         holidayInput.addEventListener('input', updateCalculation);
         document.querySelectorAll('input[name="work_type"]').forEach(radio => {
             radio.addEventListener('change', () => {
-                // 시간 선택 리셋
-                weekdayInput.value = "0";
-                holidayInput.value = "0";
                 toggleWorkHoursFields();
                 updateCalculation();
             });

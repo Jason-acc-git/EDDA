@@ -140,6 +140,9 @@
 
         function toggleWorkHoursFields() {
             const workType = document.querySelector('input[name="work_type"]:checked').id;
+            // 시간 선택 리셋
+            weekdayInput.value = "0";
+            holidayInput.value = "0";
             if (workType === 'holiday_work') {
                 weekdayField.style.display = 'none';
                 holidayField.style.display = 'block';
@@ -152,6 +155,9 @@
         function calculateTotalHours() {
             let totalHours = 0;
             const workType = document.querySelector('input[name="work_type"]:checked').id;
+            // 시간 선택 리셋
+            weekdayInput.value = "0";
+            holidayInput.value = "0";
             if (workType === 'regular_work') {
                 totalHours = parseInt(weekdayInput.value) || 0;
             } else {
@@ -189,9 +195,6 @@
         holidayInput.addEventListener('input', updateCalculation);
         document.querySelectorAll('input[name="work_type"]').forEach(radio => {
             radio.addEventListener('change', () => {
-                // 시간 선택 리셋
-                weekdayInput.value = "0";
-                holidayInput.value = "0";
                 toggleWorkHoursFields();
                 updateCalculation();
             });
