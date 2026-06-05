@@ -144,6 +144,7 @@
                             {% elif r.status == 'rejected' %}
                                 <a href="/reject/cancel/{{r.id}}" class="btn btn-sm btn-outline-secondary" onclick="return confirm('반려를 취소하시겠습니까?')">반려 취소</a>
                             {% elif r.status == 'approved' and current_user.role in ['Admin', 'Manager', 'Lead'] %}
+                                <a href="/approve/cancel/{{ r.id }}" class="btn btn-sm btn-outline-warning" onclick="return confirm('승인을 취소하시겠습니까?')">승인 취소</a>
                                 <a href="/request/delete/admin/{{ r.id }}" class="btn btn-sm btn-outline-danger" onclick="return confirm('정말로 삭제하시겠습니까?')">삭제</a>
                             {% endif %}
                         </td>

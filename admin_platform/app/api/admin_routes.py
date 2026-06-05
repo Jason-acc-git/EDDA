@@ -209,7 +209,7 @@ def admin_dashboard(
     compensatory_page: int = 1,
     trip_page: int = 1,
     dev_page: int = 1,
-    per_page: int = 10
+    per_page: int = Query(10)
 ):
     # Fetch unique names for the dropdown
     names_result = db.execute(text("SELECT DISTINCT name FROM requests ORDER BY name ASC")).fetchall()
@@ -915,3 +915,99 @@ def render_template(template_name: str, context: dict):
     template = jinja_env.get_template(template_name)
     html_content = template.render(context)
     return HTMLResponse(content=html_content)
+
+@router.get("/admin-dashboard/api/load-more")
+def load_more_requests(
+    request: Request,
+    start_date: Optional[str] = Query(None),
+    end_date: Optional[str] = Query(None),
+    selected_name: Optional[str] = Query(None),
+    request_type: Optional[str] = Query(None),
+    table_type: str = Query(...),
+    offset: int = Query(0),
+    limit: int = Query(10),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_role(["Admin", "Approver", "Lead", "Manager"], use_cache=False))
+):
+    if not start_date or not end_date:
+        today = datetime.today()
+        if today.day < 16:
+            start_of_month = today.replace(day=16) - relativedelta(months=1)
+        else:
+            start_of_month = today.replace(day=16)
+        end_of_month = start_of_month + relativedelta(months=1) - relativedelta(days=1)
+        start_date = start_of_month.strftime("%Y-%m-%d")
+        end_date = end_of_month.strftime("%Y-%m-%d")
+
+    params = {"start_date": start_date, "end_date": end_date}
+    base_query = "SELECT id, name, created, content, status FROM requests WHERE created BETWEEN :start_date AND :end_date"
+    
+    if selected_name and selected_name != "all":
+        base_query += " AND name = :name"
+        params["name"] = selected_name
+
+    if table_type == "overtime":
+        query = f"{base_query} AND type = '시간외 근무'"
+        if request_type == "시간외 근무 - 수당지급":
+            query += " AND json_extract(content, '$.compensation') = '수당지급'"
+        elif request_type == "시간외 근무 - 대체휴가":
+            query += " AND json_extract(content, '$.compensation') = '대체휴가'"
+        query += " ORDER BY id DESC LIMIT :limit OFFSET :offset"
+        requests_raw = db.execute(text(query), {**params, "limit": limit, "offset": offset}).fetchall()
+        requests = []
+        for r in requests_raw:
+            content = json.loads(r[3])
+            r = list(r)
+            r.append(content.get('compensation'))
+            requests.append(r)
+    elif table_type == "compensatory":
+        query = f"{base_query} AND type IN ('대휴 사용', '대휴신청') ORDER BY id DESC LIMIT :limit OFFSET :offset"
+        requests = db.execute(text(query), {**params, "limit": limit, "offset": offset}).fetchall()
+    elif table_type == "trip":
+        query = f"{base_query} AND type = '출장' ORDER BY id DESC LIMIT :limit OFFSET :offset"
+        requests = db.execute(text(query), {**params, "limit": limit, "offset": offset}).fetchall()
+    elif table_type == "dev":
+        query = f"{base_query} AND type = '자기개발비' ORDER BY id DESC LIMIT :limit OFFSET :offset"
+        requests = db.execute(text(query), {**params, "limit": limit, "offset": offset}).fetchall()
+    else:
+        return JSONResponse(content={"error": "Invalid table_type"}, status_code=400)
+
+    result = []
+    for req in requests:
+        content = json.loads(req[3]) if req[3] else {}
+        result.append({
+            "id": req[0],
+            "name": req[1],
+            "created": req[2],
+            "content": content,
+            "status": req[4],
+            "compensation": req[5] if len(req) > 5 else None
+        })
+
+    return JSONResponse(content={"requests": result, "has_more": len(result) == limit})
+
+@router.get("/approve/cancel/{request_id}")
+def cancel_approval(request_id: int, db: Session = Depends(get_db), current_user: User = Depends(require_role(["Admin", "Approver"]))):
+    """승인 취소 - 승인된 건을 다시 대기 상태로 변경"""
+    request_info = db.execute(text("SELECT approver, status FROM requests WHERE id = :id"), {"id": request_id}).fetchone()
+    if not request_info:
+        raise HTTPException(status_code=404, detail="Request not found")
+    
+    request_mapping = dict(request_info._mapping)
+    current_status = request_mapping.get('status', '')
+    
+    # 승인된 건만 취소 가능
+    if 'approved' not in current_status.lower():
+        raise HTTPException(status_code=400, detail="승인된 건만 취소할 수 있습니다.")
+    
+    # 이전 대기 상태로 복원
+    approver = request_mapping.get('approver', 'manager')
+    previous_status = f"{approver} 승인 대기"
+    
+    db.execute(text("UPDATE requests SET status = :status WHERE id = :id"), {
+        "status": previous_status,
+        "id": request_id
+    })
+    db.commit()
+    
+    return RedirectResponse(url="/admin-dashboard", status_code=303)
