@@ -8,15 +8,9 @@
 
         <form action="/request/overtime" method="post" enctype="multipart/form-data">
             <div class="row g-4">
-                <div class="col-md-6">
+                <div class="col-md-6 form-container">
                     <div class="card p-4 h-100">
-                        
-                        <div class="mb-3">
-                            <label class="form-label">시간외 근로일 <span class="text-danger">*</span></label>
-                            <input type="date" name="work_date" class="form-control form-control-sm" required id="work_date_input">
-                        </div>
-                        
-                        <div class="mb-3">
+                        <div class="mb-3 type-field">
                             <label class="form-label">시간외 근로유형 <span class="text-danger">*</span></label>
                             <div class="form-check">
                                 <input class="form-check-input" type="radio" name="work_type" id="regular_work" value="평일연장근로" checked>
@@ -26,6 +20,11 @@
                                 <input class="form-check-input" type="radio" name="work_type" id="holiday_work" value="휴일근로">
                                 <label class="form-check-label" for="holiday_work">휴일근로</label>
                             </div>
+                        </div>
+
+                        <div class="mb-3 date-field">
+                            <label class="form-label">시간외 근로일 <span class="text-danger">*</span></label>
+                            <input type="date" name="work_date" class="form-control form-control-sm" required id="work_date_input">
                         </div>
 
                         <div class="mb-3" id="weekday_work_hours_field">
@@ -66,7 +65,7 @@
                     </div>
                 </div>
 
-                <div class="col-md-6">
+                <div class="col-md-6 form-container">
                     <div class="card p-4 h-100">
                         <div class="mb-3">
                             <label class="form-label">시간외 근로 신청/승인 사유 (택일) <span class="text-danger">*</span></label>
@@ -141,33 +140,40 @@
 
         // 자동 근로유형 선택 기능
         const workDateInput = document.getElementById("work_date_input");
-        if (workDateInput) {
-            const koreanHolidays = ["2024-01-01", "2024-02-09", "2024-02-10", "2024-02-11", "2024-02-12", "2024-03-01", "2024-05-05", "2024-05-06", "2024-05-15", "2024-06-06", "2024-08-15", "2024-09-16", "2024-09-17", "2024-09-18", "2024-10-03", "2024-10-09", "2024-12-25"];
+        const koreanHolidays = [
+            "2024-01-01", "2024-02-09", "2024-02-10", "2024-02-11", "2024-02-12",
+            "2024-03-01", "2024-05-05", "2024-05-06", "2024-05-15", "2024-06-06",
+            "2024-08-15", "2024-09-16", "2024-09-17", "2024-09-18", "2024-10-03",
+            "2024-10-09", "2024-12-25"
+        ];
+
+        function isHoliday(dateString) {
+            const date = new Date(dateString);
+            const dayOfWeek = date.getDay();
+            return dayOfWeek === 0 || dayOfWeek === 6 || koreanHolidays.includes(dateString);
+        }
+
+        function autoSelectWorkType() {
+            const selectedDate = workDateInput.value;
+            if (!selectedDate) return;
             
-            function isHoliday(dateString) {
-                const date = new Date(dateString);
-                const dayOfWeek = date.getDay();
-                return dayOfWeek === 0 || dayOfWeek === 6 || koreanHolidays.includes(dateString);
+            const regularWorkRadio = document.getElementById("regular_work");
+            const holidayWorkRadio = document.getElementById("holiday_work");
+            
+            if (isHoliday(selectedDate)) {
+                holidayWorkRadio.checked = true;
+            } else {
+                regularWorkRadio.checked = true;
             }
             
-            workDateInput.addEventListener('change', function() {
-                const selectedDate = this.value;
-                if (!selectedDate) return;
-                
-                const regularWorkRadio = document.getElementById("regular_work");
-                const holidayWorkRadio = document.getElementById("holiday_work");
-                
-                if (isHoliday(selectedDate)) {
-                    holidayWorkRadio.checked = true;
-                } else {
-                    regularWorkRadio.checked = true;
-                }
-                
-                weekdayInput.value = "0";
-                holidayInput.value = "0";
-                toggleWorkHoursFields();
-                updateCalculation();
-            });
+            weekdayInput.value = "0";
+            holidayInput.value = "0";
+            toggleWorkHoursFields();
+            updateCalculation();
+        }
+
+        if (workDateInput) {
+            workDateInput.addEventListener('change', autoSelectWorkType);
         }
 
         function toggleWorkHoursFields() {
