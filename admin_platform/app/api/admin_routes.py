@@ -1010,4 +1010,4 @@ def cancel_approval(request_id: int, db: Session = Depends(get_db), current_user
     })
     db.commit()
     
-    return RedirectResponse(url="/admin-dashboard", status_code=303)
+    return RedirectResponse(url="/approve-list", status_code=303)

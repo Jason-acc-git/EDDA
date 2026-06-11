@@ -10,6 +10,12 @@
             <div class="row g-4">
                 <div class="col-md-6">
                     <div class="card p-4 h-100">
+
+                        <div class="mb-3">
+                            <label class="form-label">시간외 근로일 <span class="text-danger">*</span></label>
+                            <input type="date" name="work_date" class="form-control form-control-sm" value="{{ request_data.content.work_date }}" required>
+                        </div>
+
                         <div class="mb-3">
                             <label class="form-label">시간외 근로유형 <span class="text-danger">*</span></label>
                             <div class="form-check">
@@ -20,11 +26,6 @@
                                 <input class="form-check-input" type="radio" name="work_type" id="holiday_work" value="휴일근로" {% if request_data.content.work_type == '휴일근로' %}checked{% endif %}>
                                 <label class="form-check-label" for="holiday_work">휴일근로</label>
                             </div>
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label">시간외 근로일 <span class="text-danger">*</span></label>
-                            <input type="date" name="work_date" class="form-control form-control-sm" value="{{ request_data.content.work_date }}" required>
                         </div>
 
                         <div class="mb-3" id="weekday_work_hours_field">
