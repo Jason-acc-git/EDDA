@@ -117,9 +117,42 @@ async def save_overtime(
     compensation: str = Form(...)
 ):
     form_data = await req.form()
-    work_time_range = form_data.get("work_time_range")
+    work_start_time = form_data.get("work_start_time")
+
     work_hours_weekday = int(work_hours_weekday) if work_hours_weekday else 0
     work_hours_holiday_val = int(work_hours_holiday or '0')
+
+    # 시작시간과 근무시간으로 종료시간 계산
+    if work_start_time:
+        start_hour = int(work_start_time.split(":")[0])
+        if work_type == "평일연장근로":
+            end_hour = start_hour + work_hours_weekday
+        else:
+            end_hour = start_hour + work_hours_holiday_val
+        
+        # 휴게시간 계산 (3시간 이상 시 1시간 추가)
+        if (work_type == "휴일근로" and work_hours_holiday_val >= 3):
+            end_hour += 1
+        
+        work_time_range = f"{work_start_time}-{end_hour:02d}:00"
+    else:
+        work_time_range = ""
+
+    # 시작시간과 근무시간으로 종료시간 계산
+    if work_start_time:
+        start_hour = int(work_start_time.split(":")[0])
+        if work_type == "평일연장근로":
+            end_hour = start_hour + work_hours_weekday
+        else:
+            end_hour = start_hour + work_hours_holiday_val
+        
+        # 휴게시간 계산 (3시간 이상 시 1시간 추가)
+        if (work_type == "휴일근로" and work_hours_holiday_val >= 3):
+            end_hour += 1
+        
+        work_time_range = f"{work_start_time}-{end_hour:02d}:00"
+    else:
+        work_time_range = ""
 
     if work_type == "평일연장근로":
         total_hours = work_hours_weekday
@@ -531,9 +564,26 @@ async def update_overtime_request(
     compensation: str = Form(...)
 ):
     form_data = await req.form()
-    work_time_range = form_data.get("work_time_range")
+    work_start_time = form_data.get("work_start_time")
+
     work_hours_weekday = int(work_hours_weekday) if work_hours_weekday else 0
     work_hours_holiday_val = int(work_hours_holiday or '0')
+
+    # 시작시간과 근무시간으로 종료시간 계산
+    if work_start_time:
+        start_hour = int(work_start_time.split(":")[0])
+        if work_type == "평일연장근로":
+            end_hour = start_hour + work_hours_weekday
+        else:
+            end_hour = start_hour + work_hours_holiday_val
+        
+        # 휴게시간 계산 (3시간 이상 시 1시간 추가)
+        if (work_type == "휴일근로" and work_hours_holiday_val >= 3):
+            end_hour += 1
+        
+        work_time_range = f"{work_start_time}-{end_hour:02d}:00"
+    else:
+        work_time_range = ""
 
     if work_type == "평일연장근로":
         total_hours = work_hours_weekday
