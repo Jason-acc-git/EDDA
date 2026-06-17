@@ -793,18 +793,23 @@ def download_pdf(request_id: int, db: Session, current_user: User) -> bytes:
         request_data_list = [[Paragraph(f"<b>신청자:</b> {request_data['name']}", styles['Normal'])], [Paragraph(f"<b>신청일:</b> {request_data['created'].split(' ')[0]}", styles['Normal'])], [Paragraph("", styles['Normal'])], [Paragraph("", styles['Normal'])]]
         key_map = {
             "work_type": "근무 유형", "work_date": "근무일", "work_hours_weekday": "평일 근무시간",
-            "work_hours_holiday": "휴일 근무시간", "reason_type": "신청 사유", "reason_detail": "상세 사유",
+            "work_hours_holiday": "휴일 근무시간", "leave_date": "대휴 사용일", "reason_type": "신청 사유", "reason_detail": "상세 사유",
             "work_location": "근무 장소", "compensation": "보상 유형", "course_title": "수강 항목",
             "purpose": "목적", "purpose_other": "목적 (기타)", "course_content": "수강 내용", "cost": "비용",
             "start_date": "시작일", "end_date": "종료일", "reference_site": "참고 사이트",
             "region": "출장 지역", "region_other": "출장 지역 (기타)", "organization": "출장 기관",
-            "transport": "이동 수단", "hours": "사용 시간", "reason": "사유"
+            "transport": "이동 수단", "hours": "사용 시간"
         }
         
         for key, value in request_content.items():
             if key == "work_time_range":
                 continue
             if key in key_map and value:  # None이나 빈 문자열이 아닌 경우에만 추가
+                # 기타 선택 시 중복 표시 방지
+                if key == "region" and value == "기타" and request_content.get("region_other"):
+                    continue
+                if key == "purpose" and value == "기타" and request_content.get("purpose_other"):
+                    continue
                 # 시간외근무 시간 정보에 시간 범위 추가
                 if key in ["work_hours_weekday", "work_hours_holiday"]:
                     work_time_range = request_content.get("work_time_range", "")

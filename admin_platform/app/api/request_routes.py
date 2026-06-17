@@ -74,7 +74,7 @@ def self_development_form(request: Request, db: Session = Depends(get_db), curre
 
 # --- Form Submissions ---
 @router.post("/request/compensatory-leave")
-def handle_compensatory_leave(request: Request, leave_date: date = Form(...), hours: int = Form(...), reason: str = Form(...), db: Session = Depends(get_db), current_user: User = Depends(get_current_user, use_cache=False)):
+def handle_compensatory_leave(request: Request, leave_date: date = Form(...), hours: str = Form(...), db: Session = Depends(get_db), current_user: User = Depends(get_current_user, use_cache=False)):
     # 사용자의 총 대휴 획득 시간 계산
     total_compensatory_hours_result = db.execute(text("SELECT SUM(CAST(json_extract(content, '$.calculated_compensatory_hours') AS INTEGER)) FROM requests WHERE name = :name AND type = '시간외 근무' AND status = 'approved'"), {"name": current_user.name}).fetchone()
     total_compensatory_hours = total_compensatory_hours_result[0] or 0
@@ -85,10 +85,12 @@ def handle_compensatory_leave(request: Request, leave_date: date = Form(...), ho
 
     remaining_hours = total_compensatory_hours - used_compensatory_hours
 
-    if hours > remaining_hours:
+    # 시간 문자열에서 숫자 추출
+    hours_numeric = 4 if "4시간" in hours else 8
+    if hours_numeric > remaining_hours:
         return HTMLResponse(content=f"<script>alert('잔여 대휴 시간({remaining_hours}시간)을 초과하여 신청할 수 없습니다.'); window.location.href = '/request/compensatory-leave';</script>")
 
-    content = json.dumps({"leave_date": str(leave_date), "hours": hours, "reason": reason})
+    content = json.dumps({"leave_date": str(leave_date), "hours": hours})
     approver_role = 'Approver'
     db.execute(text("INSERT INTO requests (name, type, content, status, approver, created) VALUES (:name, :type, :content, :status, :approver, :created)"), {
         "name": current_user.name, 
@@ -481,9 +483,6 @@ def approve_request(id: int, db: Session = Depends(get_db), current_user: User =
 def reject_form(request: Request, id: int, current_user: User = Depends(require_role(["Admin", "Approver", "Lead"]))):
     return render_template("reject_form.html", {"request": request, "id": id, "current_user": current_user})
 
-@router.post("/reject")
-def reject_submit(id: int = Form(...), reason: str = Form(...), db: Session = Depends(get_db), current_user: User = Depends(require_role(["Admin", "Approver", "Lead"]))):
-    db.execute(text("UPDATE requests SET status = 'rejected', reject_reason = :reason WHERE id = :id"), {"reason": reason, "id": id})
     db.commit()
     return RedirectResponse(url="/approve-list", status_code=303)
 
@@ -687,13 +686,11 @@ def update_compensatory_leave_request(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user, use_cache=False),
     leave_date: date = Form(...),
-    hours: int = Form(...),
-    reason: str = Form(...)
+    hours: str = Form(...),
 ):
     content_data = {
         "leave_date": str(leave_date),
-        "hours": hours,
-        "reason": reason
+        "hours": hours
     }
 
     request_to_update = db.execute(text("SELECT status FROM requests WHERE id = :id"), {"id": request_id}).fetchone()
@@ -763,13 +760,11 @@ def update_compensatory_leave_request(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user, use_cache=False),
     leave_date: date = Form(...),
-    hours: int = Form(...),
-    reason: str = Form(...)
+    hours: str = Form(...),
 ):
     content_data = {
         "leave_date": str(leave_date),
-        "hours": hours,
-        "reason": reason
+        "hours": hours
     }
 
     request_to_update = db.execute(text("SELECT status FROM requests WHERE id = :id"), {"id": request_id}).fetchone()
