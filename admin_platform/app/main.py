@@ -349,7 +349,14 @@ def get_remaining_compensatory_hours(user_name: str):
         for req in cursor.fetchall():
             if req[0]:
                 content = json.loads(req[0])
-                used_leave_hours += content.get('hours', 0)
+                hours_value = content.get("hours", 0)
+                if isinstance(hours_value, str):
+                    if "4시간" in hours_value:
+                        used_leave_hours += 4
+                    elif "8시간" in hours_value:
+                        used_leave_hours += 8
+                else:
+                    used_leave_hours += int(hours_value or 0)
         
         conn.close()
         return total_overtime_hours - used_leave_hours
