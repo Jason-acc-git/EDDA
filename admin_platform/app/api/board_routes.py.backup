@@ -90,48 +90,17 @@ def board_main(request: Request, db: Session = Depends(get_db), notice_page: int
         SELECT COUNT(*) FROM board_posts WHERE category = '공지사항'
     """)).scalar()
 
-    # 건의사항 페이지네이션 (좋아요/싫어요 개수와 댓글도 함께 가져오기)
+    # 건의사항 페이지네이션 (내용도 함께 가져오기)
     suggestion_offset = (suggestion_page - 1) * per_page
     suggestions = db.execute(text("""
-        SELECT 
-            bp.id, bp.title, bp.content, bp.author, bp.created_at, bp.file_path,
-            COALESCE(like_counts.like_count, 0) as like_count,
-            COALESCE(like_counts.dislike_count, 0) as dislike_count,
-            COALESCE(reply_counts.reply_count, 0) as reply_count
-        FROM board_posts bp
-        LEFT JOIN (
-            SELECT 
-                post_id,
-                SUM(CASE WHEN like_type = 'like' THEN 1 ELSE 0 END) as like_count,
-                SUM(CASE WHEN like_type = 'dislike' THEN 1 ELSE 0 END) as dislike_count
-            FROM board_likes 
-            GROUP BY post_id
-        ) like_counts ON bp.id = like_counts.post_id
-        LEFT JOIN (
-            SELECT post_id, COUNT(*) as reply_count
-            FROM board_replies 
-            GROUP BY post_id
-        ) reply_counts ON bp.id = reply_counts.post_id
-        WHERE bp.category = '건의사항'
-        ORDER BY bp.created_at DESC
+        SELECT id, title, content, author, created_at, file_path
+        FROM board_posts
+        WHERE category = '건의사항'
+        ORDER BY created_at DESC
         LIMIT :limit OFFSET :offset
     """), {"limit": per_page, "offset": suggestion_offset}).fetchall()
-    
-    # Row 객체를 딕셔너리로 변환하고 댓글도 가져오기
-    suggestions_with_replies = []
-    for suggestion in suggestions:
-        suggestion_dict = dict(suggestion._mapping)
-        
-        # 각 건의사항의 댓글 가져오기
-        replies = db.execute(text("""
-            SELECT id, content, author, created_at
-            FROM board_replies
-            WHERE post_id = :post_id
-            ORDER BY created_at DESC
-        """), {"post_id": suggestion_dict['id']}).fetchall()
-        
-        suggestion_dict['replies'] = [dict(reply._mapping) for reply in replies]
-        suggestions_with_replies.append(suggestion_dict)
+    suggestions = [dict(row._mapping) for row in suggestions]
+    print("DEBUG: suggestions keys:", suggestions[0].keys() if suggestions else "No suggestions")
 
     suggestion_total = db.execute(text("""
         SELECT COUNT(*) FROM board_posts WHERE category = '건의사항'
@@ -147,7 +116,7 @@ def board_main(request: Request, db: Session = Depends(get_db), notice_page: int
     return HTMLResponse(content=template.render(
         request=request,
         notices=notices,
-        suggestions=suggestions_with_replies,
+        suggestions=suggestions,
         notice_page=notice_page,
         suggestion_page=suggestion_page,
         notice_total_pages=(notice_total + per_page - 1) // per_page,
@@ -232,50 +201,4 @@ def create_suggestion(request: Request, title: str = Form(...), content: str = F
     })
     db.commit()
 
-    return RedirectResponse(url="/board", status_code=303)
-
-# 좋아요/싫어요 기능
-@router.post("/board/post/{post_id}/like")
-def like_post(request: Request, post_id: int, like_type: str = Form(...), db: Session = Depends(get_db)):
-    """좋아요/싫어요 처리"""
-    # 클라이언트 IP 가져오기
-    client_ip = request.client.host
-    
-    # 이미 좋아요/싫어요를 눌렀는지 확인
-    existing = db.execute(text("""
-        SELECT id FROM board_likes 
-        WHERE post_id = :post_id AND user_ip = :user_ip AND like_type = :like_type
-    """), {"post_id": post_id, "user_ip": client_ip, "like_type": like_type}).fetchone()
-    
-    if not existing:
-        # 새로운 좋아요/싫어요 추가
-        db.execute(text("""
-            INSERT INTO board_likes (post_id, like_type, user_ip, created_at)
-            VALUES (:post_id, :like_type, :user_ip, :created_at)
-        """), {
-            "post_id": post_id,
-            "like_type": like_type,
-            "user_ip": client_ip,
-            "created_at": datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        })
-        db.commit()
-    
-    return RedirectResponse(url="/board", status_code=303)
-
-# 댓글 작성 기능
-@router.post("/board/post/{post_id}/comment")
-def add_comment(request: Request, post_id: int, author: str = Form(...), content: str = Form(...), db: Session = Depends(get_db)):
-    """댓글 작성"""
-    # 댓글 추가
-    db.execute(text("""
-        INSERT INTO board_replies (post_id, content, author, created_at)
-        VALUES (:post_id, :content, :author, :created_at)
-    """), {
-        "post_id": post_id,
-        "content": content,
-        "author": author,
-        "created_at": datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-    })
-    db.commit()
-    
     return RedirectResponse(url="/board", status_code=303)

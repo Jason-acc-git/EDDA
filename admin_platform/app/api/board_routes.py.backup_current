@@ -1,0 +1,288 @@
+from fastapi import APIRouter, Request, Form, File, UploadFile, Depends, HTTPException
+from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.templating import Jinja2Templates
+from sqlalchemy.orm import Session
+from sqlalchemy import text
+from datetime import datetime
+import os
+import uuid
+from app.database import get_db
+from app.auth_service import get_token_from_cookie, verify_token
+
+router = APIRouter()
+templates = Jinja2Templates(directory="templates")
+
+def save_board_file(file: UploadFile) -> str:
+    """게시판 파일 저장"""
+    if not file or not file.filename:
+        return None
+
+    # uploads/board 디렉토리 생성
+    upload_dir = "uploads/board"
+    os.makedirs(upload_dir, exist_ok=True)
+
+    # 파일명 생성 (UUID + 원본 확장자)
+    file_extension = os.path.splitext(file.filename)[1]
+    unique_filename = f"{uuid.uuid4()}{file_extension}"
+    file_path = os.path.join(upload_dir, unique_filename)
+
+    # 파일 저장
+    with open(file_path, "wb") as buffer:
+        content = file.file.read()
+        buffer.write(content)
+
+    return file_path
+
+def get_current_user_optional(request: Request, db: Session = Depends(get_db)):
+    """로그인 상태를 확인하되, 로그인하지 않아도 에러를 발생시키지 않음"""
+    try:
+        token = get_token_from_cookie(request)
+        if not token:
+            return None
+        
+        payload = verify_token(token)
+        if not payload:
+            return None
+            
+        user_id = payload.get("user_id")
+        if not user_id:
+            return None
+            
+        user = db.execute(text("SELECT * FROM users WHERE id = :user_id"), {"user_id": user_id}).fetchone()
+        return user
+    except Exception:
+        return None
+
+@router.get("/board", response_class=HTMLResponse)
+def board_main(request: Request, db: Session = Depends(get_db), notice_page: int = 1, suggestion_page: int = 1):
+    current_user = get_current_user_optional(request, db)
+    
+    per_page = 10
+    notice_offset = (notice_page - 1) * per_page
+    suggestion_offset = (suggestion_page - 1) * per_page
+
+    # 공지사항 조회
+    notices = db.execute(text("""
+        SELECT id, title, author, created_at, file_path 
+        FROM board_posts 
+        WHERE category = '공지사항' 
+        ORDER BY created_at DESC 
+        LIMIT :limit OFFSET :offset
+    """), {"limit": per_page, "offset": notice_offset}).fetchall()
+
+    notice_total = db.execute(text("""
+        SELECT COUNT(*) FROM board_posts WHERE category = '공지사항'
+    """)).scalar()
+
+    # 건의사항 조회 (답글 개수 포함)
+    suggestions = db.execute(text("""
+        SELECT bp.id, bp.title, bp.author, bp.created_at, bp.file_path,
+               COALESCE(reply_count.count, 0) as reply_count,
+               COALESCE(like_count.count, 0) as like_count,
+               COALESCE(dislike_count.count, 0) as dislike_count
+        FROM board_posts bp
+        LEFT JOIN (
+            SELECT post_id, COUNT(*) as count 
+            FROM board_replies 
+            GROUP BY post_id
+        ) reply_count ON bp.id = reply_count.post_id
+        LEFT JOIN (
+            SELECT post_id, COUNT(*) as count 
+            FROM board_likes 
+            WHERE like_type = 'like'
+            GROUP BY post_id
+        ) like_count ON bp.id = like_count.post_id
+        LEFT JOIN (
+            SELECT post_id, COUNT(*) as count 
+            FROM board_likes 
+            WHERE like_type = 'dislike'
+            GROUP BY post_id
+        ) dislike_count ON bp.id = dislike_count.post_id
+        WHERE bp.category = '건의사항' 
+        ORDER BY bp.created_at DESC 
+        LIMIT :limit OFFSET :offset
+    """), {"limit": per_page, "offset": suggestion_offset}).fetchall()
+
+    suggestion_total = db.execute(text("""
+        SELECT COUNT(*) FROM board_posts WHERE category = '건의사항'
+    """)).scalar()
+
+    notice_total_pages = (notice_total + per_page - 1) // per_page
+    suggestion_total_pages = (suggestion_total + per_page - 1) // per_page
+
+    return templates.TemplateResponse("board.html", {
+        "request": request,
+        "current_user": current_user,
+        "notices": notices,
+        "suggestions": suggestions,
+        "notice_page": notice_page,
+        "suggestion_page": suggestion_page,
+        "notice_total_pages": notice_total_pages,
+        "suggestion_total_pages": suggestion_total_pages
+    })
+
+@router.post("/board/notice")
+def create_notice(request: Request, title: str = Form(...), content: str = Form(...), file: UploadFile = File(None), db: Session = Depends(get_db)):
+    current_user = get_current_user_optional(request, db)
+    if not current_user or current_user.role != 'admin':
+        raise HTTPException(status_code=403, detail="관리자만 공지사항을 작성할 수 있습니다.")
+    
+    file_path = save_board_file(file) if file else None
+    
+    db.execute(text("""
+        INSERT INTO board_posts (category, title, content, author, created_at, updated_at, file_path)
+        VALUES (:category, :title, :content, :author, :created_at, :updated_at, :file_path)
+    """), {
+        "category": "공지사항",
+        "title": title,
+        "content": content,
+        "author": current_user.name,
+        "created_at": datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+        "updated_at": datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+        "file_path": file_path
+    })
+    db.commit()
+    
+    return RedirectResponse(url="/board", status_code=303)
+
+@router.get("/board/{category}", response_class=HTMLResponse)
+def board_category(request: Request, category: str, db: Session = Depends(get_db), page: int = 1):
+    current_user = get_current_user_optional(request, db)
+    
+    per_page = 10
+    offset = (page - 1) * per_page
+    
+    posts = db.execute(text("""
+        SELECT id, title, content, author, created_at, file_path 
+        FROM board_posts 
+        WHERE category = :category 
+        ORDER BY created_at DESC 
+        LIMIT :limit OFFSET :offset
+    """), {"category": category, "limit": per_page, "offset": offset}).fetchall()
+    
+    total_posts = db.execute(text("""
+        SELECT COUNT(*) FROM board_posts WHERE category = :category
+    """), {"category": category}).scalar()
+    
+    total_pages = (total_posts + per_page - 1) // per_page
+    
+    return templates.TemplateResponse("board_category.html", {
+        "request": request,
+        "current_user": current_user,
+        "posts": posts,
+        "category": category,
+        "page": page,
+        "total_pages": total_pages
+    })
+
+@router.post("/board/suggestion")
+def create_suggestion(request: Request, title: str = Form(...), content: str = Form(...), author: str = Form("익명"), file: UploadFile = File(None), db: Session = Depends(get_db)):
+    file_path = save_board_file(file) if file else None
+    
+    db.execute(text("""
+        INSERT INTO board_posts (category, title, content, author, created_at, updated_at, file_path)
+        VALUES (:category, :title, :content, :author, :created_at, :updated_at, :file_path)
+    """), {
+        "category": "건의사항",
+        "title": title,
+        "content": content,
+        "author": author,
+        "created_at": datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+        "updated_at": datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+        "file_path": file_path
+    })
+    db.commit()
+    
+    return RedirectResponse(url="/board", status_code=303)
+
+@router.get("/board/post/{post_id}", response_class=HTMLResponse)
+def view_post(request: Request, post_id: int, db: Session = Depends(get_db)):
+    current_user = get_current_user_optional(request, db)
+    
+    post = db.execute(text("""
+        SELECT id, category, title, content, author, created_at, file_path 
+        FROM board_posts 
+        WHERE id = :post_id
+    """), {"post_id": post_id}).fetchone()
+    
+    if not post:
+        raise HTTPException(status_code=404, detail="게시글을 찾을 수 없습니다.")
+    
+    # 답글 조회
+    replies = db.execute(text("""
+        SELECT id, content, author, created_at 
+        FROM board_replies 
+        WHERE post_id = :post_id 
+        ORDER BY created_at DESC
+    """), {"post_id": post_id}).fetchall()
+    
+    return templates.TemplateResponse("board_detail.html", {
+        "request": request,
+        "current_user": current_user,
+        "post": post,
+        "replies": replies
+    })
+
+@router.post("/board/post/{post_id}/reply")
+def add_reply(request: Request, post_id: int, content: str = Form(...), db: Session = Depends(get_db)):
+    current_user = get_current_user_optional(request, db)
+    if not current_user:
+        raise HTTPException(status_code=401, detail="로그인이 필요합니다.")
+    
+    # 게시글 존재 확인
+    post = db.execute(text("SELECT id FROM board_posts WHERE id = :post_id"), {"post_id": post_id}).fetchone()
+    if not post:
+        raise HTTPException(status_code=404, detail="게시글을 찾을 수 없습니다.")
+    
+    db.execute(text("""
+        INSERT INTO board_replies (post_id, content, author, created_at)
+        VALUES (:post_id, :content, :author, :created_at)
+    """), {
+        "post_id": post_id,
+        "content": content,
+        "author": current_user.name,
+        "created_at": datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    })
+    db.commit()
+
+    return RedirectResponse(url=f"/board/post/{post_id}", status_code=303)
+
+@router.post("/board/post/{post_id}/like")
+def like_post(request: Request, post_id: int, like_type: str = Form(...), db: Session = Depends(get_db)):
+    user_ip = request.client.host
+    
+    # 이미 좋아요/싫어요를 눌렀는지 확인
+    existing = db.execute(text("""
+        SELECT id FROM board_likes 
+        WHERE post_id = :post_id AND user_ip = :user_ip
+    """), {"post_id": post_id, "user_ip": user_ip}).fetchone()
+    
+    if not existing:
+        db.execute(text("""
+            INSERT INTO board_likes (post_id, like_type, user_ip, created_at)
+            VALUES (:post_id, :like_type, :user_ip, :created_at)
+        """), {
+            "post_id": post_id,
+            "like_type": like_type,
+            "user_ip": user_ip,
+            "created_at": datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        })
+        db.commit()
+
+    return RedirectResponse(url="/board", status_code=303)
+
+@router.post("/board/post/{post_id}/comment")
+def add_comment(request: Request, post_id: int, author: str = Form(...), content: str = Form(...), db: Session = Depends(get_db)):
+    # 댓글 추가
+    db.execute(text("""
+        INSERT INTO board_replies (post_id, content, author, created_at)
+        VALUES (:post_id, :content, :author, :created_at)
+    """), {
+        "post_id": post_id,
+        "content": content,
+        "author": author,
+        "created_at": datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    })
+    db.commit()
+
+    return RedirectResponse(url=f"/board/post/{post_id}", status_code=303)
