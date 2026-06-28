@@ -16,7 +16,9 @@
                         <h1 class="position-relative mb-4">게시판<img src="/static/images/board.gif" alt="board" class="animated-gif" style="margin-left: 20px; width: 120px; height: 120px; max-width: 120px; max-height: 120px;"></h1>
                          <!-- 공지사항 섹션 -->
                          <div class="mb-5">
-                            <div class="d-flex justify-content-between align-items-center mb-3"><h4 class="text-primary mb-0">📢 공지사항</h4>{% if is_admin %}<button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#noticeModal">✏️ 글작성</button>{% endif %}</div>
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h4 class="text-success mb-0"><img src="/static/images/notice.png" alt="공지사항" style="width: 24px; height: 24px; margin-right: 8px; vertical-align: middle;"> 공지사항</h4>{% if is_admin %}<button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#noticeModal">✏️ 글작성</button>{% endif %}</div>
+                                <!-- <h4 class="text-primary mb-0">📢 공지사항</h4>{% if is_admin %}<button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#noticeModal">✏️ 글작성</button>{% endif %}</div> -->
                              <div class="accordion" id="noticeAccordion">
                                 {% for notice in notices %}
                                 <div class="accordion-item">
@@ -68,7 +70,8 @@
                         <!-- 건의사항 섹션 -->
                         <div class="mb-4">
                             <div class="d-flex justify-content-between align-items-center mb-3">
-                                <h4 class="text-success mb-0">💡 건의사항</h4>
+                                <h4 class="text-success mb-0"><img src="/static/images/request.png" alt="건의사항" style="width: 24px; height: 24px; margin-right: 8px; vertical-align: middle;"> 건의사항</h4>
+                                <!-- <h4 class="text-success mb-0">💡 건의사항</h4> -->
                                 <button type="button" class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#suggestionModal">
                                     ✏️ 글작성
                                 </button>
