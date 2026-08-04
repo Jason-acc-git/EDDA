@@ -18,6 +18,16 @@ from ..services.auth_service import get_current_user, require_role
 
 router = APIRouter()
 templates = Jinja2Templates(directory="app/templates")
+
+def in_approval_scope(current_role, target_dept, target_role):
+    if current_role == "Admin":
+        return True
+    if current_role == "Approver":
+        return target_dept == "행정팀" or target_role == "Lead"
+    if current_role == "Lead":
+        return target_dept != "행정팀" and target_role != "Lead"
+    return False
+
 def save_upload_file(upload_file: UploadFile, destination: str) -> str:
     try:
         with open(destination, "wb") as buffer:
@@ -342,12 +352,18 @@ def approve_list(request: Request, db: Session = Depends(get_db), current_user: 
 
     end_date_dt = datetime.strptime(end_date, "%Y-%m-%d") + timedelta(days=1)
     end_date_str = end_date_dt.strftime("%Y-%m-%d")
-    query = "SELECT id, name, type, content, status, created, approver, reject_reason, cost, approved_by_lead, approved_by_approver, approved_by_lead_at, approved_by_approver_at, file_path FROM requests WHERE created >= :start_date AND created < :end_date"
+    query = "SELECT r.id, r.name, r.type, r.content, r.status, r.created, r.approver, r.reject_reason, r.cost, r.approved_by_lead, r.approved_by_approver, r.approved_by_lead_at, r.approved_by_approver_at, r.file_path FROM requests r JOIN employees e ON r.name = e.name WHERE r.created >= :start_date AND r.created < :end_date"
+    scope_clause = ""
+    if current_user.role == "Approver":
+        scope_clause = " AND (e.dept = '행정팀' OR e.role = 'Lead')"
+    elif current_user.role == "Lead":
+        scope_clause = " AND (e.dept != '행정팀' AND e.role != 'Lead')"
+    query += scope_clause
     params = {"start_date": start_date, "end_date": end_date_str}
     params = {"start_date": start_date, "end_date": end_date_str}
 
     if selected_name and selected_name != "all":
-        query += " AND name = :name"
+        query += " AND r.name = :name"
         params["name"] = selected_name
 
     if request_type:
@@ -376,7 +392,7 @@ def approve_list(request: Request, db: Session = Depends(get_db), current_user: 
             query += " AND status = :status"
             params["status"] = status_filter
 
-    query += " ORDER BY id DESC"
+    query += " ORDER BY r.id DESC"
 
     all_requests = db.execute(text(query), params).fetchall()
     print(f"all_requests: {all_requests}")
@@ -411,16 +427,16 @@ def approve_list(request: Request, db: Session = Depends(get_db), current_user: 
         paginated_requests.append(row_dict)
 
     # 통계 데이터 계산
-    pending_count_result = db.execute(text("SELECT count(*) FROM requests WHERE status LIKE '%대기'")).fetchone()
+    pending_count_result = db.execute(text(f"SELECT count(*) FROM requests r JOIN employees e ON r.name = e.name WHERE r.status LIKE '%대기'{scope_clause}")).fetchone()
     pending_count = pending_count_result[0]
 
-    approved_count_result = db.execute(text("SELECT count(*) FROM requests WHERE status = 'approved'")).fetchone()
+    approved_count_result = db.execute(text(f"SELECT count(*) FROM requests r JOIN employees e ON r.name = e.name WHERE r.status = 'approved'{scope_clause}")).fetchone()
     approved_count = approved_count_result[0]
 
-    rejected_count_result = db.execute(text("SELECT count(*) FROM requests WHERE status = 'rejected'")).fetchone()
+    rejected_count_result = db.execute(text(f"SELECT count(*) FROM requests r JOIN employees e ON r.name = e.name WHERE r.status = 'rejected'{scope_clause}")).fetchone()
     rejected_count = rejected_count_result[0]
 
-    total_count_result = db.execute(text("SELECT count(*) FROM requests")).fetchone()
+    total_count_result = db.execute(text(f"SELECT count(*) FROM requests r JOIN employees e ON r.name = e.name WHERE 1=1{scope_clause}")).fetchone()
     total_count = total_count_result[0]
 
     return render_template("approve_list.html", {
@@ -443,10 +459,12 @@ def approve_list(request: Request, db: Session = Depends(get_db), current_user: 
 @router.get("/approve")
 def approve_request(id: int, db: Session = Depends(get_db), current_user: User = Depends(require_role(["Admin", "Approver", "Lead"]))):
     # Check if the current user has permission to approve
-    current_approver_result = db.execute(text("SELECT approver FROM requests WHERE id = :id"), {"id": id}).fetchone()
-    current_approver = current_approver_result[0]
+    target_result = db.execute(text("SELECT e.dept, e.role FROM requests r JOIN employees e ON r.name = e.name WHERE r.id = :id"), {"id":id}).fetchone()
+    if target_result is None:
+        return RedirectResponse(url="/approve-list", status_code=303)
+    target_dept, target_role = target_result
 
-    if current_user.role not in ['Admin', 'Approver', 'lead']:
+    if not in_approval_scope(current_user.role, target_dept, target_role):
         return RedirectResponse(url="/approve-list", status_code=303)
 
     # Final approval
@@ -483,6 +501,21 @@ def approve_request(id: int, db: Session = Depends(get_db), current_user: User =
 def reject_form(request: Request, id: int, current_user: User = Depends(require_role(["Admin", "Approver", "Lead"]))):
     return render_template("reject_form.html", {"request": request, "id": id, "current_user": current_user})
 
+@router.post("/reject")
+def submit_reject(id: int = Form(...), reason: str = Form(...), db: Session = Depends(get_db), current_user: User = Depends(require_role(["Admin","Approver", "Lead"]))):
+    target_result = db.execute(text("SELECT e.dept, e.role FROM requests r JOIN employees e ON r.name = e.name WHERE r.id = :id"), {"id":id}).fetchone()
+    if target_result is None:
+        return RedirectResponse(url="/approve-list", status_code=303)
+    target_dept, target_role = target_result
+
+    if not in_approval_scope(current_user.role, target_dept, target_role):
+        return RedirectResponse(url="/approve-list", status_code=303)
+
+    db.execute(text("UPDATE requests SET status = 'rejected', reject_reason = :reason, approver = :approver WHERE id = :id"), {
+        "reason": reason,
+        "approver": current_user.name,
+        "id": id
+    })
     db.commit()
     return RedirectResponse(url="/approve-list", status_code=303)
 

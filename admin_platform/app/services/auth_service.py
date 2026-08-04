@@ -59,10 +59,10 @@ from functools import lru_cache
 
 @lru_cache(maxsize=128)
 def get_user_from_db(username: str, db: Session) -> User:
-    db_user = db.execute(text("SELECT role FROM employees WHERE name = :username"), {"username": username}).fetchone()
+    db_user = db.execute(text("SELECT role, dept FROM employees WHERE name = :username"), {"username": username}).fetchone()
     if db_user is None:
         return None
-    return User(name=username, role=db_user[0])
+    return User(name=username, role=db_user[0], dept=db_user[1])
 
 def get_current_user(request: Request, db: Session = Depends(get_db), use_cache: bool = True) -> User:
     token = get_token_from_cookie(request)

@@ -1,0 +1,31 @@
+p = "app/api/request_routes.py"
+s = open(p).read()
+Q = chr(39)
+old = "    return render_template(\"reject_form.html\", {\"request\": request, \"id\": id, \"current_user\": current_user})\n"
+old += "\n"
+old += "    db.commit()\n"
+old += "    return RedirectResponse(url=\"/approve-list\", status_code=303)"
+assert s.count(old) == 1, "old reject dead-code not found"
+new = "    return render_template(\"reject_form.html\", {\"request\": request, \"id\": id, \"current_user\": current_user})\n"
+new += "\n"
+new += "@router.post(\"/reject\")\n"
+new += "def submit_reject(id: int = Form(...), reason: str = Form(...), db: Session = Depends(get_db), current_user: User = Depends(require_role([\"Admin\",\"Approver\", \"Lead\"]))):\n"
+new += "    target_result = db.execute(text(\"SELECT e.dept, e.role FROM requests r JOIN employees e ON r.name = e.name WHERE r.id = :id\"), {\"id\":id}).fetchone()\n"
+new += "    if target_result is None:\n"
+new += "        return RedirectResponse(url=\"/approve-list\", status_code=303)\n"
+new += "    target_dept, target_role = target_result\n"
+new += "\n"
+new += "    if not in_approval_scope(current_user.role, target_dept, target_role):\n"
+new += "        return RedirectResponse(url=\"/approve-list\", status_code=303)\n"
+new += "\n"
+new += "    db.execute(text(\"UPDATE requests SET status = "
+new += Q + "rejected" + Q + ", reject_reason = :reason, approver = :approver WHERE id = :id\"), {\n"
+new += "        \"reason\": reason,\n"
+new += "        \"approver\": current_user.name,\n"
+new += "        \"id\": id\n"
+new += "    })\n"
+new += "    db.commit()\n"
+new += "    return RedirectResponse(url=\"/approve-list\", status_code=303)"
+s = s.replace(old, new, 1)
+open(p, "w").write(s)
+print("reject handler added OK")

@@ -9,13 +9,18 @@ from sqlalchemy import text
 from .api import admin_routes, employee_routes, request_routes, board_routes
 import os
 
-def get_pending_approvals_count():
+def get_pending_approvals_count(role=None):
     """승인 대기 건수를 데이터베이스에서 가져오는 함수"""
     try:
         import sqlite3
         conn = sqlite3.connect('admin.db')
         cursor = conn.cursor()
-        cursor.execute("SELECT COUNT(*) FROM requests WHERE status LIKE '%대기' OR status = '재신청'")
+        query = "SELECT COUNT(*) FROM requests r JOIN employees e ON r.name = e.name WHERE (r.status LIKE '%대기' OR r.status = '재신청')"
+        if role == "Approver":
+            query += " AND (e.dept = '행정팀' OR e.role = 'Lead')"
+        elif role == "Lead":
+            query += " AND (e.dept != '행정팀' AND e.role != 'Lead')"
+        cursor.execute(query)
         count = cursor.fetchone()[0]
         conn.close()
         return count
@@ -105,7 +110,7 @@ def dashboard(request: Request, page: int = 1, db: Session = Depends(get_db), cu
         "remaining_dev_cost": get_remaining_dev_cost(current_user.name),
         "page": page,
         "total_pages": (get_user_requests_count(current_user.name) + 9) // 10,
-        "pending_approvals": get_pending_approvals_count()
+        "pending_approvals": get_pending_approvals_count(current_user.role)
     })
 
 @app.get("/test")

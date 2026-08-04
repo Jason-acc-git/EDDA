@@ -32,6 +32,7 @@ from sqlalchemy import text
 from ..db.database import get_db
 from ..models.schemas import User
 from ..services.auth_service import require_role, get_current_user
+from .request_routes import in_approval_scope
 
 router = APIRouter()
 templates = Jinja2Templates(directory="app/templates")
@@ -761,13 +762,12 @@ def download_pdf(request_id: int, db: Session, current_user: User) -> bytes:
 
 
         # Determine the approver for the PDF
-        pdf_approver_setting = db.execute(text("SELECT value FROM settings WHERE key = 'pdf_approver'")).fetchone()
-        
-        approver_name = None
-        if pdf_approver_setting and pdf_approver_setting[0]:
-            approver_name = pdf_approver_setting[0]
-        else:
-            approver_name = request_data.get('approver')
+        approver_name = request_data.get('approver')
+
+        if not approver_name:
+            pdf_approver_setting = db.execute(text("SELECT value FROM settings WHERE key = 'pdf_approver'")).fetchone()
+            if pdf_approver_setting and pdf_approver_setting[0]:
+                approver_name = pdf_approver_setting[0]
 
         if not approver_name:
             approver_name = "관리자"
@@ -893,12 +893,15 @@ def download_pdf_route(request_id: int, db: Session = Depends(get_db), current_u
     )
 
 @router.get("/reject/cancel/{request_id}")
-def cancel_rejection(request_id: int, db: Session = Depends(get_db), current_user: User = Depends(require_role(["Admin", "Approver"]))):
-    request_info = db.execute(text("SELECT approver FROM requests WHERE id = :id"), {"id": request_id}).fetchone()
+def cancel_rejection(request_id: int, db: Session = Depends(get_db), current_user: User = Depends(require_role(["Admin", "Approver","Lead"]))):
+    request_info = db.execute(text("SELECT r.approver, e.dept, e.role FROM requests r JOIN employees e ON r.name = e.name WHERE r.id = :id"), {"id":request_id}).fetchone()
     if not request_info:
         raise HTTPException(status_code=404, detail="Request not found")
+    approver, target_dept, target_role = request_info
+    if not in_approval_scope(current_user.role, target_dept, target_role):
+        raise HTTPException(status_code=403, detail="이 요청에 대한 권한이 없습니다.")
 
-    previous_status = f"{dict(request_info._mapping).get('approver', 'manager')} 승인 대기"
+    previous_status = f"{approver if approver else 'manager'} 승인 대기"
 
     db.execute(text("UPDATE requests SET status = :status, reject_reason = NULL WHERE id = :id"), {
         "status": previous_status,
@@ -999,22 +1002,22 @@ def load_more_requests(
     return JSONResponse(content={"requests": result, "has_more": len(result) == limit})
 
 @router.get("/approve/cancel/{request_id}")
-def cancel_approval(request_id: int, db: Session = Depends(get_db), current_user: User = Depends(require_role(["Admin", "Approver"]))):
+def cancel_approval(request_id: int, db: Session = Depends(get_db), current_user: User = Depends(require_role(["Admin", "Approver", "Lead"]))):
     """승인 취소 - 승인된 건을 다시 대기 상태로 변경"""
-    request_info = db.execute(text("SELECT approver, status FROM requests WHERE id = :id"), {"id": request_id}).fetchone()
+    request_info = db.execute(text("SELECT r.approver, r.status, e.dept, e.role FROM requests r JOIN employees e ON r.name = e.name WHERE r.id = :id"),{"id": request_id}).fetchone()
     if not request_info:
         raise HTTPException(status_code=404, detail="Request not found")
-    
-    request_mapping = dict(request_info._mapping)
-    current_status = request_mapping.get('status', '')
-    
+
+    approver, current_status, target_dept, target_role = request_info
+    if not in_approval_scope(current_user.role, target_dept, target_role):
+        raise HTTPException(status_code=403, detail="이 요청에 대한 권한이 없습니다.")
+
     # 승인된 건만 취소 가능
-    if 'approved' not in current_status.lower():
+    if 'approved' not in (current_status or '').lower():
         raise HTTPException(status_code=400, detail="승인된 건만 취소할 수 있습니다.")
-    
+
     # 이전 대기 상태로 복원
-    approver = request_mapping.get('approver', 'manager')
-    previous_status = f"{approver} 승인 대기"
+    previous_status = f"{approver if approver else 'manager'} 승인 대기"
     
     db.execute(text("UPDATE requests SET status = :status WHERE id = :id"), {
         "status": previous_status,
