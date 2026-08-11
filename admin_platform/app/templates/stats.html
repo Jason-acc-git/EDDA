@@ -129,23 +129,40 @@
                         type: 'bar',
                         data: {
                             labels: data.labels,
-                            datasets: [{
-                                label: `시간외 근무 시간 (${period === 'monthly' ? (month ? `${month.split('-')[0]}년 ${parseInt(month.split('-')[1])}월` : '월별') : '연간'})`,
-                                data: data.data,
-                                backgroundColor: '#A9D0F5',
-                                borderColor: '#A9D0F5',
-                                borderWidth: 1
-                            }]
+                            datasets: [
+                                {
+                                    label: '대체휴가',
+                                    data: data.compensatory_data,
+                                    backgroundColor: '#F4A9A9',
+                                    borderColor: '#F4A9A9',
+                                    borderWidth: 1
+                                },
+                                {
+                                    label: '수당',
+                                    data: data.allowance_data,
+                                    backgroundColor: '#A9D0F5',
+                                    borderColor: '#A9D0F5',
+                                    borderWidth: 1
+                                }
+                            ]
                         },
                         options: {
                             responsive: true,
                             plugins: {
                                 legend: {
                                     display: true
+                                },
+                                title: {
+                                    display: true,
+                                    text: `시간외 근무 시간 (${period === 'monthly' ? (month ? `${month.split('-')[0]}년 ${parseInt(month.split('-')[1])}월` : '월별') : '연간'})`
                                 }
                             },
                             scales: {
+                                x: {
+                                    stacked: true
+                                },
                                 y: {
+                                    stacked: true,
                                     beginAtZero: true,
                                     ticks: {
                                         stepSize: 1

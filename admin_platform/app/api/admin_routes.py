@@ -175,19 +175,21 @@ def get_overtime_hours(
     employees = [row[0] for row in employees_result]
 
     labels = []
-    data = []
+    allowance_data = []
+    compensatory_data = []
     today = datetime.today()
 
     for emp_name in employees:
         labels.append(emp_name)
-        total_hours = 0
+        allowance_hours = 0
+        compensatory_hours = 0
 
         if period == "monthly":
             if month:
                 target_month_dt = datetime.strptime(month, "%Y-%m")
             else:
                 target_month_dt = today
-            
+
             end_date = (target_month_dt.replace(day=15)).strftime("%Y-%m-%d")
             start_date = (target_month_dt.replace(day=16) - relativedelta(months=1)).strftime("%Y-%m-%d")
 
@@ -198,11 +200,13 @@ def get_overtime_hours(
         requests_result = db.execute(text("SELECT content FROM requests WHERE name = :name AND type = '시간외 근무' AND (status LIKE '%대기' OR status = '재신청' OR status = 'approved') AND json_extract(content, '$.work_date') BETWEEN :start_date AND :end_date"), {"name": emp_name, "start_date": start_date, "end_date": end_date}).fetchall()
         for req in requests_result:
             content = json.loads(req[0])
-            total_hours += content.get('work_hours_weekday', 0) + content.get('work_hours_holiday', 0)
-        
-        data.append(total_hours)
+            allowance_hours += content.get('calculated_approved_hours', 0)
+            compensatory_hours += content.get('calculated_compensatory_hours', 0)
 
-    return JSONResponse(content={"labels": labels, "data": data})
+        allowance_data.append(allowance_hours)
+        compensatory_data.append(compensatory_hours)
+
+    return JSONResponse(content={"labels": labels, "allowance_data": allowance_data, "compensatory_data": compensatory_data})
 
 @router.get("/admin-dashboard")
 def admin_dashboard(
