@@ -117,6 +117,11 @@ def dashboard(request: Request, page: int = 1, db: Session = Depends(get_db), cu
 def test():
     return {"message": "Server is working"}
 
+@app.get("/calendar/data")
+def calendar_data(year: int, month: int, current_user: User = Depends(get_current_user, use_cache=False)):
+    data = get_calendar_events(year, month, current_user.name)
+    return JSONResponse(content=data, media_type="application/json; charset=utf-8")
+
 #app.include_router(employee_routes.router)
 #app.include_router(request_routes.router)
 #app.include_router(board_routes.router)
@@ -285,7 +290,75 @@ def test_all_requests():
         return {"error": str(e)}
 
 
+def get_calendar_events(year: int, month: int, current_user_name: str):
+    """월별 근태 이벤트(내 근무 / 팀 전체) 조회"""
+    import sqlite3, json
+    from datetime import datetime, timedelta
 
+    month_start = f"{year:04d}-{month:02d}-01"
+    if month == 12:
+        month_end = f"{year+1:04d}-01-01"
+    else:
+        month_end = f"{year:04d}-{month+1:02d}-01"
+
+    def expand_days(start_date, end_date):
+        if not start_date:
+            return []
+        end_date = end_date or start_date
+        d = max(datetime.strptime(start_date, "%Y-%m-%d"), datetime.strptime(month_start, "%Y-%m-%d"))
+        e = min(datetime.strptime(end_date, "%Y-%m-%d"), datetime.strptime(month_end, "%Y-%m-%d") - timedelta(days=1))
+        days = []
+        cur = d
+        while cur <= e:
+            days.append(cur.strftime("%Y-%m-%d"))
+            cur += timedelta(days=1)
+        return days
+
+    def event_for(rtype, content):
+        if rtype == '시간외 근무':
+            wd = content.get('work_date')
+            if not wd:
+                return []
+            hours = (content.get('work_hours_weekday', 0) or 0) + (content.get('work_hours_holiday', 0) or 0)
+            return [(wd, f"시간외근무 {hours}시간")] if month_start <= wd < month_end else []
+        if rtype == '대휴신청':
+            ld = content.get('leave_date')
+            if not ld:
+                return []
+            hours_str = str(content.get('hours', '') or '')
+            if hours_str and '시간' not in hours_str:
+                hours_str = f"{hours_str}시간"
+            label = f"대휴 {hours_str}" if hours_str else "대휴"
+            return [(ld, label)] if month_start <= ld < month_end else []
+        if rtype == '출장':
+            return [(d, "출장") for d in expand_days(content.get('start_date'), content.get('end_date'))]
+        return []
+
+    try:
+        conn = sqlite3.connect('admin.db')
+        cursor = conn.cursor()
+        cursor.execute("SELECT name, type, content FROM requests WHERE status = 'approved'")
+        rows = cursor.fetchall()
+        conn.close()
+    except Exception as e:
+        print(f"캘린더 데이터 조회 오류: {e}")
+        rows = []
+
+    my_events = {}
+    team_events = {}
+
+    for name, rtype, content_raw in rows:
+        try:
+            content = json.loads(content_raw) if content_raw else {}
+        except Exception:
+            content = {}
+
+        for d, label in event_for(rtype, content):
+            team_events.setdefault(d, []).append(f"{name} {label}")
+            if name == current_user_name:
+                my_events.setdefault(d, []).append(label)
+
+    return {"year": year, "month": month, "my_events": my_events, "team_events": team_events}
 
 def get_monthly_overtime_hours(user_name: str):
     """이번 달 누적 시간외근무 시간 계산"""
