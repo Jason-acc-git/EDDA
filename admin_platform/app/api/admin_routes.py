@@ -843,7 +843,10 @@ def download_pdf(request_id: int, db: Session, current_user: User) -> bytes:
         story.append(Paragraph("상기 신청을 승인합니다.", styles['Normal']))
         story.append(Spacer(1, 24))
 
-        story.append(Paragraph(f"<b>승인 날짜:</b> {request_data['created'].split(' ')[0]}", styles['Normal']))
+        # story.append(Paragraph(f"<b>승인 날짜:</b> {request_data['created'].split(' ')[0]}", styles['Normal']))
+        approval_timestamp = request_data.get('approved_by_approver_at') or request_data.get('approved_by_lead_at')
+        approval_date_str = approval_timestamp.split(' ')[0] if approval_timestamp else request_data['created'].split(' ')[0]
+        story.append(Paragraph(f"<b>승인 날짜:</b> {approval_date_str}", styles['Normal']))
         story.append(Spacer(1, 12))
         story.append(Paragraph(f"<b>승인자:</b> {approver_position} {approver_name}", styles['Normal']))
 
