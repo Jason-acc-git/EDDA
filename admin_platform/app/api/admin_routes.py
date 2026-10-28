@@ -136,14 +136,22 @@ def get_employee_status(db: Session = Depends(get_db), current_user: User = Depe
         used_leave_hours = 0
         for req in leave_requests:
             content = json.loads(req[0])
+            # ===== 1시간 단위 변경 전 (주석 처리, 참고/롤백용) =====
+#             hours_value = content.get("hours", 0)
+#             if isinstance(hours_value, str):
+#                 if "4시간" in hours_value:
+#                     used_leave_hours += 4
+#                 elif "8시간" in hours_value:
+#                     used_leave_hours += 8
+#             else:
+#                 used_leave_hours += int(hours_value or 0)
+            # ===== 이전 코드 끝 =====
             hours_value = content.get("hours", 0)
             if isinstance(hours_value, str):
-                if "4시간" in hours_value:
-                    used_leave_hours += 4
-                elif "8시간" in hours_value:
-                    used_leave_hours += 8
+                match = re.search(r'\d+(\.\d+)?', hours_value)
+                used_leave_hours += float(match.group()) if match else 0
             else:
-                used_leave_hours += int(hours_value or 0)
+                used_leave_hours += float(hours_value or 0)
 
         remaining_hours = total_overtime_hours - used_leave_hours
 
@@ -809,7 +817,7 @@ def download_pdf(request_id: int, db: Session, current_user: User) -> bytes:
             "purpose": "목적", "purpose_other": "목적 (기타)", "course_content": "수강 내용", "cost": "비용",
             "start_date": "시작일", "end_date": "종료일", "reference_site": "참고 사이트",
             "region": "출장 지역", "region_other": "출장 지역 (기타)", "organization": "출장 기관",
-            "transport": "이동 수단", "hours": "사용 시간"
+            "transport": "이동 수단", "hours": "사용 시간", "start_time": "시작 시간", "end_time": "종료 시간"
         }
         
         for key, value in request_content.items():

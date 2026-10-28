@@ -83,37 +83,81 @@ def self_development_form(request: Request, db: Session = Depends(get_db), curre
     return render_template("self_development_form.html", {"request": request, "current_user": current_user, "remaining_dev_cost": remaining_dev_cost})
 
 # --- Form Submissions ---
+# ===== 1시간 단위 변경 전 (주석 처리, 참고/롤백용) =====
+# @router.post("/request/compensatory-leave")
+# def handle_compensatory_leave(request: Request, leave_date: date = Form(...), hours: str = Form(...), db: Session = Depends(get_db), current_user: User = Depends(get_current_user, use_cache=False)):
+#     # 사용자의 총 대휴 획득 시간 계산
+#     total_compensatory_hours_result = db.execute(text("SELECT SUM(CAST(json_extract(content, '$.calculated_compensatory_hours') AS INTEGER)) FROM requests WHERE name = :name AND type = '시간외 근무' AND status = 'approved'"), {"name": current_user.name}).fetchone()
+#     total_compensatory_hours = total_compensatory_hours_result[0] or 0
+#
+#     # 사용자가 사용한 대휴 시간 계산
+#     used_compensatory_hours_result = db.execute(text("SELECT SUM(CAST(json_extract(content, '$.hours') AS INTEGER)) FROM requests WHERE name = :name AND type = '대휴신청' AND status = 'approved'"), {"name": current_user.name}).fetchone()
+#     used_compensatory_hours = used_compensatory_hours_result[0] or 0
+#
+#     remaining_hours = total_compensatory_hours - used_compensatory_hours
+#
+#     # 시간 문자열에서 숫자 추출
+#     hours_numeric = 4 if "4시간" in hours else 8
+#     if hours_numeric > remaining_hours:
+#         return HTMLResponse(content=f"<script>alert('잔여 대휴 시간({remaining_hours}시간)을 초과하여 신청할 수 없습니다.'); window.location.href = '/request/compensatory-leave';</script>")
+#
+#     content = json.dumps({"leave_date": str(leave_date), "hours": hours})
+#     approver_role = 'Approver'
+#     db.execute(text("INSERT INTO requests (name, type, content, status, approver, created) VALUES (:name, :type, :content, :status, :approver, :created)"), {
+#         "name": current_user.name, 
+#         "type": '대휴신청', 
+#         "content": content, 
+#         "status": f'{approver_role} 승인 대기', 
+#         "approver": approver_role,
+#         "created": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+#     })
+#     db.commit()
+#
+#     return RedirectResponse(url="/dashboard", status_code=303)
+#
+# ===== 이전 코드 끝 =====
+
 @router.post("/request/compensatory-leave")
-def handle_compensatory_leave(request: Request, leave_date: date = Form(...), hours: str = Form(...), db: Session = Depends(get_db), current_user: User = Depends(get_current_user, use_cache=False)):
-    # 사용자의 총 대휴 획득 시간 계산
+def handle_compensatory_leave(request: Request, leave_date: date = Form(...), start_time: str = Form(...), end_time: str = Form(...), db: Session = Depends(get_db), current_user: User = Depends(get_current_user, use_cache=False)):
     total_compensatory_hours_result = db.execute(text("SELECT SUM(CAST(json_extract(content, '$.calculated_compensatory_hours') AS INTEGER)) FROM requests WHERE name = :name AND type = '시간외 근무' AND status = 'approved'"), {"name": current_user.name}).fetchone()
     total_compensatory_hours = total_compensatory_hours_result[0] or 0
 
-    # 사용자가 사용한 대휴 시간 계산
     used_compensatory_hours_result = db.execute(text("SELECT SUM(CAST(json_extract(content, '$.hours') AS INTEGER)) FROM requests WHERE name = :name AND type = '대휴신청' AND status = 'approved'"), {"name": current_user.name}).fetchone()
     used_compensatory_hours = used_compensatory_hours_result[0] or 0
 
     remaining_hours = total_compensatory_hours - used_compensatory_hours
 
-    # 시간 문자열에서 숫자 추출
-    hours_numeric = 4 if "4시간" in hours else 8
+    try:
+        start_h, start_m = map(int, start_time.split(':'))
+        end_h, end_m = map(int, end_time.split(':'))
+        start_total = start_h * 60 + start_m
+        end_total = end_h * 60 + end_m
+        lunch_overlap = max(0, min(end_total, 13 * 60) - max(start_total, 12 * 60))
+        hours_numeric = ((end_total - start_total) - lunch_overlap) / 60
+    except Exception:
+        return HTMLResponse(content="<script>alert('시간 형식이 올바르지 않습니다.'); window.location.href = '/request/compensatory-leave';</script>")
+
+    if hours_numeric <= 0 or hours_numeric != int(hours_numeric):
+        return HTMLResponse(content="<script>alert('1시간 단위로, 종료 시간이 시작 시간보다 늦도록 선택해주세요.'); window.location.href = '/request/compensatory-leave';</script>")
+
+    hours_numeric = int(hours_numeric)
+
     if hours_numeric > remaining_hours:
         return HTMLResponse(content=f"<script>alert('잔여 대휴 시간({remaining_hours}시간)을 초과하여 신청할 수 없습니다.'); window.location.href = '/request/compensatory-leave';</script>")
 
-    content = json.dumps({"leave_date": str(leave_date), "hours": hours})
+    content = json.dumps({"leave_date": str(leave_date), "start_time": start_time, "end_time": end_time, "hours": str(hours_numeric)}, ensure_ascii=False)
     approver_role = 'Approver'
     db.execute(text("INSERT INTO requests (name, type, content, status, approver, created) VALUES (:name, :type, :content, :status, :approver, :created)"), {
-        "name": current_user.name, 
-        "type": '대휴신청', 
-        "content": content, 
-        "status": f'{approver_role} 승인 대기', 
+        "name": current_user.name,
+        "type": '대휴신청',
+        "content": content,
+        "status": f'{approver_role} 승인 대기',
         "approver": approver_role,
         "created": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     })
     db.commit()
 
     return RedirectResponse(url="/dashboard", status_code=303)
-
 @router.post("/request/overtime")
 async def save_overtime(
     req: Request,
@@ -787,17 +831,66 @@ def update_business_trip_request(
     db.commit()
     return RedirectResponse(url="/dashboard", status_code=303)
 
+# ===== 1시간 단위 변경 전 (주석 처리, 참고/롤백용) =====
+# @router.post("/request/edit/compensatory-leave/{request_id}")
+# def update_compensatory_leave_request(
+#     request_id: int,
+#     db: Session = Depends(get_db),
+#     current_user: User = Depends(get_current_user, use_cache=False),
+#     leave_date: date = Form(...),
+#     hours: str = Form(...),
+# ):
+#     content_data = {
+#         "leave_date": str(leave_date),
+#         "hours": hours
+#     }
+#
+#     request_to_update = db.execute(text("SELECT status FROM requests WHERE id = :id"), {"id": request_id}).fetchone()
+#
+#     update_fields = {
+#         "content": json.dumps(content_data, ensure_ascii=False),
+#         "id": request_id,
+#         "name": current_user.name
+#     }
+#
+#     if request_to_update and request_to_update[0] == 'rejected':
+#         update_fields["status"] = '재신청'
+#         db.execute(text("UPDATE requests SET content = :content, status = :status WHERE id = :id AND name = :name"), update_fields)
+#     else:
+#         db.execute(text("UPDATE requests SET content = :content WHERE id = :id AND name = :name"), update_fields)
+#
+#     db.commit()
+#     return RedirectResponse(url="/dashboard", status_code=303)
+#
+# ===== 이전 코드 끝 =====
+
 @router.post("/request/edit/compensatory-leave/{request_id}")
 def update_compensatory_leave_request(
     request_id: int,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user, use_cache=False),
     leave_date: date = Form(...),
-    hours: str = Form(...),
+    start_time: str = Form(...),
+    end_time: str = Form(...),
 ):
+    try:
+        start_h, start_m = map(int, start_time.split(':'))
+        end_h, end_m = map(int, end_time.split(':'))
+        start_total = start_h * 60 + start_m
+        end_total = end_h * 60 + end_m
+        lunch_overlap = max(0, min(end_total, 13 * 60) - max(start_total, 12 * 60))
+        hours_numeric = ((end_total - start_total) - lunch_overlap) / 60
+    except Exception:
+        return HTMLResponse(content="<script>alert('시간 형식이 올바르지 않습니다.'); window.history.back();</script>")
+
+    if hours_numeric <= 0 or hours_numeric != int(hours_numeric):
+        return HTMLResponse(content="<script>alert('1시간 단위로, 종료 시간이 시작 시간보다 늦도록 선택해주세요.'); window.history.back();</script>")
+
     content_data = {
         "leave_date": str(leave_date),
-        "hours": hours
+        "start_time": start_time,
+        "end_time": end_time,
+        "hours": str(int(hours_numeric))
     }
 
     request_to_update = db.execute(text("SELECT status FROM requests WHERE id = :id"), {"id": request_id}).fetchone()
@@ -816,7 +909,6 @@ def update_compensatory_leave_request(
 
     db.commit()
     return RedirectResponse(url="/dashboard", status_code=303)
-
 @router.post("/request/edit/self-development/{request_id}")
 def update_self_development_request(
     request_id: int,

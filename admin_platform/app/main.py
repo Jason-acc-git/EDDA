@@ -423,18 +423,31 @@ def get_remaining_compensatory_hours(user_name: str):
             WHERE name = ? AND type = '대휴신청' AND status = 'approved'
         """, (user_name,))
         
+        # ===== 1시간 단위 변경 전 (주석 처리, 참고/롤백용) =====
+#         used_leave_hours = 0
+#         for req in cursor.fetchall():
+#             if req[0]:
+#                 content = json.loads(req[0])
+#                 hours_value = content.get("hours", 0)
+#                 if isinstance(hours_value, str):
+#                     if "4시간" in hours_value:
+#                         used_leave_hours += 4
+#                     elif "8시간" in hours_value:
+#                         used_leave_hours += 8
+#                 else:
+#                     used_leave_hours += int(hours_value or 0)
+        # ===== 이전 코드 끝 =====
         used_leave_hours = 0
         for req in cursor.fetchall():
             if req[0]:
                 content = json.loads(req[0])
                 hours_value = content.get("hours", 0)
                 if isinstance(hours_value, str):
-                    if "4시간" in hours_value:
-                        used_leave_hours += 4
-                    elif "8시간" in hours_value:
-                        used_leave_hours += 8
+                    import re
+                    match = re.search(r'\d+(\.\d+)?', hours_value)
+                    used_leave_hours += float(match.group()) if match else 0
                 else:
-                    used_leave_hours += int(hours_value or 0)
+                    used_leave_hours += float(hours_value or 0)
         
         conn.close()
         return total_overtime_hours - used_leave_hours

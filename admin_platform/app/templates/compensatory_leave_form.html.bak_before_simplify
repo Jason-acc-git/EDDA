@@ -1,0 +1,562 @@
+{# ===== 이전 버전 (1시간 단위 변경 전, 참고/롤백용 비활성 코드) =====
+{ # ===== 이전 버전 (1시간 단위 변경 전, 참고/롤백용 비활성 코드) =====
+{% extends "base.html" %}
+
+{% block title %}대휴 신청{% endblock %}
+
+
+{% block extra_css %}
+<style>
+@keyframes moveLeftRightNoRotate {
+    0% { transform: translateX(0%); }
+    10% { transform: translateX(30%); }
+    20% { transform: translateX(60%); }
+    30% { transform: translateX(90%); }
+    40% { transform: translateX(120%); }
+    50% { transform: translateX(150%); }
+    60% { transform: translateX(120%); }
+    70% { transform: translateX(90%); }
+    80% { transform: translateX(60%); }
+    90% { transform: translateX(30%); }
+    100% { transform: translateX(0%); }
+}
+.animated-gif {
+    animation: moveLeftRightNoRotate 2s linear infinite;
+    position: relative;
+    display: inline-block;
+    width: 50px;
+    height: 50px;
+}
+    100% { transform: translateX(0%); }
+}
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+</style>
+{% endblock %}
+{% block content %}
+    <div class="card p-4 mx-auto compensatory-page" style="max-width: 600px;">
+<h3 class="position-relative">대휴 신청<img src="/static/images/run.gif" alt="running" class="animated-gif" style="margin-left: 20px; width: 120px; height: 120px; max-width: 120px; max-height: 120px;"></h3>
+        <div class="alert alert-light-yellow">남은 대휴 시간: {{ remaining_hours }}시간</div>
+        <form action="{{ '/request/edit/compensatory-leave/' ~ request_data.id if request_data else '/request/compensatory-leave' }}" method="post" enctype="multipart/form-data">
+            <div class="mb-3">
+                <label for="leave_date" class="form-label">대휴 사용일</label>
+                <input type="date" id="leave_date" name="leave_date" class="form-control form-control-sm" value="{{ request_data.content.leave_date if request_data else '' }}" required>
+            </div>
+            <div class="mb-3">
+                <label for="hours" class="form-label">사용할 시간</label>
+                <select id="hours" name="hours" class="form-control form-control-sm" required><option value="">선택하세요</option><option value="4시간 오전" {{ 'selected' if request_data and request_data.content.hours == "4시간 오전" else '' }}>4시간 오전(09:00~14:00)</option><option value="4시간 오후" {{ 'selected' if request_data and request_data.content.hours == "4시간 오후" else '' }}>4시간 오후(14:00~18:00)</option><option value="8시간" {{ 'selected' if request_data and request_data.content.hours == "8시간" else '' }}>8시간</option></select>
+            </div>
+
+            <div class="d-flex justify-content-end gap-2 mt-4">
+                {% if request_data %}
+                    <a href="/dashboard" class="btn btn-secondary">취소</a>
+                    <a href="/request/delete/{{ request_data.id }}" class="btn btn-danger" onclick="return confirm('정말로 삭제하시겠습니까?')">삭제</a>
+                    <button type="submit" class="btn btn-submit">수정 저장</button>
+                {% else %}
+                    <a href="/dashboard" class="btn btn-secondary">취소</a>
+                    <button type="submit" class="btn btn-submit">제출</button>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+        <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const hoursInput = document.getElementById('hours');
+            const remainingHours = parseFloat('{{ remaining_hours }}');
+
+            if (remainingHours <= 0) {
+                alert('남은 대휴 시간이 없어 신청할 수 없습니다.');
+                hoursInput.disabled = true;
+                document.querySelector('button[type="submit"]').disabled = true;
+            }
+
+        });
+    </script>
+{% endblock %}
+
+===== 이전 버전 끝 ===== # }
+
+{% extends "base.html" %}
+
+{% block title %}대휴 신청{% endblock %}
+
+
+{% block extra_css %}
+<style>
+@keyframes moveLeftRightNoRotate {
+    0% { transform: translateX(0%); }
+    10% { transform: translateX(30%); }
+    20% { transform: translateX(60%); }
+    30% { transform: translateX(90%); }
+    40% { transform: translateX(120%); }
+    50% { transform: translateX(150%); }
+    60% { transform: translateX(120%); }
+    70% { transform: translateX(90%); }
+    80% { transform: translateX(60%); }
+    90% { transform: translateX(30%); }
+    100% { transform: translateX(0%); }
+}
+.animated-gif {
+    animation: moveLeftRightNoRotate 2s linear infinite;
+    position: relative;
+    display: inline-block;
+    width: 50px;
+    height: 50px;
+}
+</style>
+{% endblock %}
+{% block content %}
+    <div class="card p-4 mx-auto compensatory-page" style="max-width: 600px;">
+<h3 class="position-relative">대휴 신청<img src="/static/images/run.gif" alt="running" class="animated-gif" style="margin-left: 20px; width: 120px; height: 120px; max-width: 120px; max-height: 120px;"></h3>
+        <div class="alert alert-light-yellow">남은 대휴 시간: {{ remaining_hours }}시간</div>
+        <form action="{{ '/request/edit/compensatory-leave/' ~ request_data.id if request_data else '/request/compensatory-leave' }}" method="post" enctype="multipart/form-data" id="compensatory-form">
+            <div class="mb-3">
+                <label for="leave_date" class="form-label">대휴 사용일</label>
+                <input type="date" id="leave_date" name="leave_date" class="form-control form-control-sm" value="{{ request_data.content.leave_date if request_data else '' }}" required>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">사용 방식</label>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="leave_mode" id="mode_duration" value="duration" {{ '' if request_data else 'checked' }}>
+                    <label class="form-check-label" for="mode_duration">시작 시간 + 사용 시간</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="leave_mode" id="mode_range" value="range" {{ 'checked' if request_data else '' }}>
+                    <label class="form-check-label" for="mode_range">시작 시간 + 종료 시간</label>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label for="start_time" class="form-label">시작 시간</label>
+                <select id="start_time" name="start_time" class="form-select form-select-sm" required>
+                    <option value="">선택하세요</option>
+                    <option value="09:00">09:00</option>
+                    <option value="10:00">10:00</option>
+                    <option value="11:00">11:00</option>
+                    <option value="12:00">12:00</option>
+                    <option value="13:00">13:00</option>
+                    <option value="14:00">14:00</option>
+                    <option value="15:00">15:00</option>
+                    <option value="16:00">16:00</option>
+                    <option value="17:00">17:00</option>
+                </select>
+            </div>
+
+            <div class="mb-3" id="field_duration">
+                <label for="duration_hours" class="form-label">사용할 시간</label>
+                <select id="duration_hours" class="form-select form-select-sm">
+                    <option value="1">1시간</option>
+                    <option value="2">2시간</option>
+                    <option value="3">3시간</option>
+                    <option value="4">4시간</option>
+                    <option value="5">5시간</option>
+                    <option value="6">6시간</option>
+                    <option value="7">7시간</option>
+                    <option value="8" selected>8시간</option>
+                </select>
+            </div>
+
+            <div class="mb-3" id="field_end_time" style="display:none;">
+                <label for="end_time" class="form-label">종료 시간</label>
+                <select id="end_time" name="end_time" class="form-select form-select-sm">
+                    <option value="">선택하세요</option>
+                    <option value="10:00">10:00</option>
+                    <option value="11:00">11:00</option>
+                    <option value="12:00">12:00</option>
+                    <option value="13:00">13:00</option>
+                    <option value="14:00">14:00</option>
+                    <option value="15:00">15:00</option>
+                    <option value="16:00">16:00</option>
+                    <option value="17:00">17:00</option>
+                    <option value="18:00">18:00</option>
+                </select>
+            </div>
+
+            <div class="alert alert-info p-2" id="duration_display">시작 시간과 사용할 시간을 선택해주세요.</div>
+
+            <div class="d-flex justify-content-end gap-2 mt-4">
+                {% if request_data %}
+                    <a href="/dashboard" class="btn btn-secondary">취소</a>
+                    <a href="/request/delete/{{ request_data.id }}" class="btn btn-danger" onclick="return confirm('정말로 삭제하시겠습니까?')">삭제</a>
+                    <button type="submit" class="btn btn-submit">수정 저장</button>
+                {% else %}
+                    <a href="/dashboard" class="btn btn-secondary">취소</a>
+                    <button type="submit" class="btn btn-submit">제출</button>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const remainingHours = parseFloat('{{ remaining_hours }}');
+        const form = document.getElementById('compensatory-form');
+        const submitBtn = form.querySelector('button[type="submit"]');
+
+        if (remainingHours <= 0) {
+            alert('남은 대휴 시간이 없어 신청할 수 없습니다.');
+            submitBtn.disabled = true;
+        }
+
+        const modeDuration = document.getElementById('mode_duration');
+        const modeRange = document.getElementById('mode_range');
+        const startTimeSelect = document.getElementById('start_time');
+        const durationField = document.getElementById('field_duration');
+        const durationSelect = document.getElementById('duration_hours');
+        const endTimeField = document.getElementById('field_end_time');
+        const endTimeSelect = document.getElementById('end_time');
+        const display = document.getElementById('duration_display');
+
+        {% if request_data %}
+        startTimeSelect.value = "{{ request_data.content.start_time or '' }}";
+        endTimeSelect.value = "{{ request_data.content.end_time or '' }}";
+        {% endif %}
+
+        function toHours(timeStr) {
+            if (!timeStr) return null;
+            const parts = timeStr.split(':');
+            return parseInt(parts[0], 10) + (parseInt(parts[1], 10) / 60);
+        }
+
+        function formatTime(h) {
+            const hh = Math.floor(h);
+            const mm = Math.round((h - hh) * 60);
+            return String(hh).padStart(2, '0') + ':' + String(mm).padStart(2, '0');
+        }
+
+        function toggleMode() {
+            if (modeDuration.checked) {
+                durationField.style.display = 'block';
+                endTimeField.style.display = 'none';
+            } else {
+                durationField.style.display = 'none';
+                endTimeField.style.display = 'block';
+            }
+            updateDisplay();
+        }
+
+        function updateDisplay() {
+            const start = startTimeSelect.value;
+
+            if (modeDuration.checked) {
+                if (!start) {
+                    display.textContent = '시작 시간과 사용할 시간을 선택해주세요.';
+                    return;
+                }
+                const duration = parseInt(durationSelect.value, 10);
+                const endH = toHours(start) + duration;
+                if (endH > 18) {
+                    display.textContent = '업무 시간(09:00~18:00)을 초과합니다. 시작 시간이나 사용할 시간을 조정해주세요.';
+                    return;
+                }
+                display.textContent = `${start} ~ ${formatTime(endH)} (${duration}시간) 신청됩니다.`;
+            } else {
+                const end = endTimeSelect.value;
+                if (!start || !end) {
+                    display.textContent = '시작 시간과 종료 시간을 선택해주세요.';
+                    return;
+                }
+                const diff = toHours(end) - toHours(start);
+                if (diff <= 0) {
+                    display.textContent = '종료 시간은 시작 시간보다 늦어야 합니다.';
+                    return;
+                }
+                display.textContent = `${start} ~ ${end} (${diff}시간) 신청됩니다.`;
+            }
+        }
+
+        modeDuration.addEventListener('change', toggleMode);
+        modeRange.addEventListener('change', toggleMode);
+        startTimeSelect.addEventListener('change', updateDisplay);
+        durationSelect.addEventListener('change', updateDisplay);
+        endTimeSelect.addEventListener('change', updateDisplay);
+
+        form.addEventListener('submit', function(e) {
+            if (modeDuration.checked) {
+                const start = startTimeSelect.value;
+                if (!start) {
+                    e.preventDefault();
+                    alert('시작 시간을 선택해주세요.');
+                    return;
+                }
+                const duration = parseInt(durationSelect.value, 10);
+                const endH = toHours(start) + duration;
+                if (endH > 18) {
+                    e.preventDefault();
+                    alert('업무 시간(09:00~18:00)을 초과합니다.');
+                    return;
+                }
+                const endStr = formatTime(endH);
+                let found = false;
+                for (const opt of endTimeSelect.options) {
+                    if (opt.value === endStr) { found = true; break; }
+                }
+                if (!found) {
+                    const opt = document.createElement('option');
+                    opt.value = endStr;
+                    opt.textContent = endStr;
+                    endTimeSelect.appendChild(opt);
+                }
+                endTimeSelect.value = endStr;
+            } else {
+                if (!startTimeSelect.value || !endTimeSelect.value) {
+                    e.preventDefault();
+                    alert('시작 시간과 종료 시간을 선택해주세요.');
+                    return;
+                }
+                if (toHours(endTimeSelect.value) - toHours(startTimeSelect.value) <= 0) {
+                    e.preventDefault();
+                    alert('종료 시간은 시작 시간보다 늦어야 합니다.');
+                }
+            }
+        });
+
+        toggleMode();
+    });
+    </script>
+{% endblock %}
+
+===== 이전 버전 끝 ===== #}
+
+{% extends "base.html" %}
+
+{% block title %}대휴 신청{% endblock %}
+
+
+{% block extra_css %}
+<style>
+@keyframes moveLeftRightNoRotate {
+    0% { transform: translateX(0%); }
+    10% { transform: translateX(30%); }
+    20% { transform: translateX(60%); }
+    30% { transform: translateX(90%); }
+    40% { transform: translateX(120%); }
+    50% { transform: translateX(150%); }
+    60% { transform: translateX(120%); }
+    70% { transform: translateX(90%); }
+    80% { transform: translateX(60%); }
+    90% { transform: translateX(30%); }
+    100% { transform: translateX(0%); }
+}
+.animated-gif {
+    animation: moveLeftRightNoRotate 2s linear infinite;
+    position: relative;
+    display: inline-block;
+    width: 50px;
+    height: 50px;
+}
+</style>
+{% endblock %}
+{% block content %}
+    <div class="card p-4 mx-auto compensatory-page" style="max-width: 600px;">
+<h3 class="position-relative">대휴 신청<img src="/static/images/run.gif" alt="running" class="animated-gif" style="margin-left: 20px; width: 120px; height: 120px; max-width: 120px; max-height: 120px;"></h3>
+        <div class="alert alert-light-yellow">남은 대휴 시간: {{ remaining_hours }}시간</div>
+        <form action="{{ '/request/edit/compensatory-leave/' ~ request_data.id if request_data else '/request/compensatory-leave' }}" method="post" enctype="multipart/form-data" id="compensatory-form">
+            <div class="mb-3">
+                <label for="leave_date" class="form-label">대휴 사용일</label>
+                <input type="date" id="leave_date" name="leave_date" class="form-control form-control-sm" value="{{ request_data.content.leave_date if request_data else '' }}" required>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">사용 방식</label>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="leave_mode" id="mode_duration" value="duration" {{ '' if request_data else 'checked' }}>
+                    <label class="form-check-label" for="mode_duration">시작 시간 + 사용 시간</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="leave_mode" id="mode_range" value="range" {{ 'checked' if request_data else '' }}>
+                    <label class="form-check-label" for="mode_range">시작 시간 + 종료 시간</label>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label for="start_time" class="form-label">시작 시간</label>
+                <select id="start_time" name="start_time" class="form-select form-select-sm" required>
+                    <option value="">선택하세요</option>
+                    <option value="09:00">09:00</option>
+                    <option value="10:00">10:00</option>
+                    <option value="11:00">11:00</option>
+                    <option value="12:00">12:00</option>
+                    <option value="13:00">13:00</option>
+                    <option value="14
+                    <option value="15:00">15:00</option>
+                    <option value="16
+                    <option value="17:00">17:00</option>
+                </select>
+            </div>
+
+            <div class="mb-3" id="field_duration">
+                <label for="duration_사용할 시간</label>
+                <select id="duration_hours" class="form-select form-select-sm">
+                    <option value="1"
+                    <option value="2">2시간</option>
+                    <option value="3"
+                    <option value="4">4시간</option>
+                    <option value="5"
+                    <option value="6">6시간</option>
+                    <option value="7"
+                    <option value="8" selected>8시간</option>
+                </select>
+            </div>
+
+            <div class="mb-3" id="field_end_time" style="display:none;">
+                <label for="end_time" 간</label>
+                <select id="end_time" name="end_time" class="form-select form-select-sm">
+                    <option value="">
+                    <option value="10:00">10:00</option>
+                    <option value="11
+                    <option value="12:00">12:00</option>
+                    <option value="13
+                    <option value="14:00">14:00</option>
+                    <option value="15
+                    <option value="16:00">16:00</option>
+                    <option value="17
+                    <option value="18:00">18:00</option>
+                </select>
+            </div>
+
+            <div class="alert alert-info p-2" id="duration_display">시작 시간과 사용할 시간을
+선택해주세요.</div>
+
+            <div class="d-flex justif
+                {% if request_data %}
+                    <a href="/dashboary">취소</a>
+                    <a href="/request/delete/{{ request_data.id }}" class="btn btn-danger"
+onclick="return confirm('정말로 삭제
+                    <button type="submit" class="btn btn-submit">수정 저장</button>
+                {% else %}
+                    <a href="/dashboard" class="btn btn-secondary">취소</a>
+                    <button type="sub">제출</button>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const remainingHours = parseFloat('{{ remaining_hours }}');
+        const form = document.getElementById('compensatory-form');
+        const submitBtn = form.querySelector('button[type="submit"]');
+
+        if (remainingHours <= 0) {
+            alert('남은 대휴 시간이 없어 신청할 수 없습니다.');
+            submitBtn.disabled = true;
+        }
+
+        const modeDuration = document.getElementById('mode_duration');
+        const modeRange = document.getElementById('mode_range');
+        const startTimeSelect = document.getElementById('start_time');
+        const durationField = document.getElementById('field_duration');
+        const durationSelect = document.getElementById('duration_hours');
+        const endTimeField = document.getElementById('field_end_time');
+        const endTimeSelect = document.getElementById('end_time');
+        const display = document.getElementById('duration_display');
+
+        {% if request_data %}
+        startTimeSelect.value = "{{ request_data.content.start_time or '' }}";
+        endTimeSelect.value = "{{ request_data.content.end_time or '' }}";
+        {% endif %}
+
+        function toHours(timeStr) {
+            if (!timeStr) return null;
+            const parts = timeStr.split(':');
+            return parseInt(parts[0], 10) + (parseInt(parts[1], 10) / 60);
+        }
+
+        function formatTime(h) {
+            const hh = Math.floor(h);
+            const mm = Math.round((h - hh) * 60);
+            return String(hh).padStart(2, '0') + ':' + String(mm).padStart(2, '0');
+        }
+
+        function toggleMode() {
+            if (modeDuration.checked) {
+                durationField.style.display = 'block';
+                endTimeField.style.display = 'none';
+            } else {
+                durationField.style.display = 'none';
+                endTimeField.style.display = 'block';
+            }
+            updateDisplay();
+        }
+
+        function updateDisplay() {
+            const start = startTimeSelect.value;
+
+            if (modeDuration.checked) {
+                if (!start) {
+                    display.textContent = '시작 시간과 사용할 시간을 선택해주세요.';
+                    return;
+                }
+                const duration = parseInt(durationSelect.value, 10);
+                const endH = toHours(start) + duration;
+                if (endH > 18) {
+                    display.textContent = '업무 시간(09:00~18:00)을 초과합니다. 시작 시간이나 사용할 시간을 조정해주세요.';
+                    return;
+                }
+                display.textContent = `${start} ~ ${formatTime(endH)} (${duration}시간) 신청됩니다.`;
+            } else {
+                const end = endTimeSelect.value;
+                if (!start || !end) {
+                    display.textContent = '시작 시간과 종료 시간을 선택해주세요.';
+                    return;
+                }
+                const diff = toHours(end) - toHours(start);
+                if (diff <= 0) {
+                    display.textContent = '종료 시간은 시작 시간보다 늦어야 합니다.';
+                    return;
+                }
+                display.textContent = `${start} ~ ${end} (${diff}시간) 신청됩니다.`;
+            }
+        }
+
+        modeDuration.addEventListener('change', toggleMode);
+        modeRange.addEventListener('change', toggleMode);
+        startTimeSelect.addEventListener('change', updateDisplay);
+        durationSelect.addEventListener('change', updateDisplay);
+        endTimeSelect.addEventListener('change', updateDisplay);
+
+        form.addEventListener('submit', function(e) {
+            if (modeDuration.checked) {
+                const start = startTimeSelect.value;
+                if (!start) {
+                    e.preventDefault();
+                    alert('시작 시간을 선택해주세요.');
+                    return;
+                }
+                const duration = parseInt(durationSelect.value, 10);
+                const endH = toHours(start) + duration;
+                if (endH > 18) {
+                    e.preventDefault();
+                    alert('업무 시간(09:00~18:00)을 초과합니다.');
+                    return;
+                }
+                const endStr = formatTime(endH);
+                let found = false;
+                for (const opt of endTimeSelect.options) {
+                    if (opt.value === endStr) { found = true; break; }
+                }
+                if (!found) {
+                    const opt = document.createElement('option');
+                    opt.value = endStr;
+                    opt.textContent = endStr;
+                    endTimeSelect.appendChild(opt);
+                }
+                endTimeSelect.value = endStr;
+            } else {
+                if (!startTimeSelect.value || !endTimeSelect.value) {
+                    e.preventDefault();
+                    alert('시작 시간과 종료 시간을 선택해주세요.');
+                    return;
+                }
+                if (toHours(endTimeSelect.value) - toHours(startTimeSelect.value) <= 0) {
+                    e.preventDefault();
+                    alert('종료 시간은 시작 시간보다 늦어야 합니다.');
+                }
+            }
+        });
+
+        toggleMode();
+    });
+    </script>
+{% endblock %}
