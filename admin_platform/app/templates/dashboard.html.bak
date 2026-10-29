@@ -1,0 +1,431 @@
+{% extends "base.html" %}
+
+{% block title %}대시보드{% endblock %}
+
+{% block content %}
+    <div class="dashboard-page">
+    <div class="d-flex justify-content-between align-items-center mb-3 logo-container">
+        <div class="logo-animation-area">
+            <img src="/static/images/login.gif" alt="Logo" class="animated-logo">
+        </div>
+        <div class="user-info">
+            <span class="me-2"><strong>{{ current_user.name }}</strong> ({{ current_user.role }})님, 환영합니다.</span>
+            <a href="/logout" class="btn btn-sm btn-secondary">로그아웃</a>
+        </div>
+    </div>
+
+    <div class="row">
+    <div class="col-lg-6">
+    <div class="card p-4 mb-4">
+        <h5 class="mb-3">신청하기</h5>
+        <div class="d-flex gap-2 flex-wrap">
+            <a href="/request/overtime" class="btn btn-primary">시간외 근무</a>
+            <a href="/request/compensatory-leave" class="btn btn-primary">대휴 신청</a>
+            <a href="/request/business-trip" class="btn btn-primary">출장</a>
+            <a href="/request/self-development" class="btn btn-primary">자기개발비</a>
+        </div>
+
+        {% if current_user.role in ['Admin', 'Approver', 'Manager', 'Lead'] %}
+        <hr>
+        <h5 class="mb-3">관리</h5>
+        <div class="d-flex gap-2 flex-wrap">
+            {% if current_user.role in ['Admin', 'Approver', 'Lead'] %}
+            <a href="/approve-list" class="btn btn-primary position-relative">
+              승인 관리
+              {% if pending_approvals > 0 %}
+                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                  {{ pending_approvals }}
+                  <span class="visually-hidden">unread messages</span>
+                </span>
+              {% endif %}
+
+            </a>
+            {% endif %}
+            <a href="/admin-dashboard" class="btn btn-primary">문서관리</a>
+            <a href="/stats" class="btn btn-primary">통계 보기</a>
+            {% if current_user.role in ['Admin', 'Approver'] %}<a href="/settings" class="btn btn-primary">환경 설정</a>{% endif %}
+            {% if current_user.role in ['Admin', 'Lead'] %}
+            <a href="/employee/list" class="btn btn-primary">직원 관리</a>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="card p-4 mb-4">
+        <h5 class="mb-3">요약 정보</h5>
+        <div class="row">
+            <div class="col-md-4">
+                <p class="small">이번 달 누적 시간외 근무: <strong>{{ monthly_overtime }}시간</strong></p>
+            </div>
+            <div class="col-md-4">
+                <p class="small">남은 대휴: <strong>{{ remaining_compensatory_hours }}시간</strong></p>
+            </div>
+            <div class="col-md-4">
+                <p class="small">자기개발비 잔액: <strong>{{ '{:,.0f}'.format(remaining_dev_cost) }}원</strong></p>
+            </div>
+        </div>
+    </div>
+
+     </div>
+    <div class="col-lg-6">
+    <div class="card p-4 mb-4" id="calendar-card">
+        <style>
+            #cal-table td { position: relative; padding: 0.4rem 0; cursor: pointer; }
+            #cal-table td.today-cell { font-weight: bold; color: #0d6efd; }
+            #cal-table td.selected-cell { background-color: #e7f1ff; border-radius: 6px; }
+            /* #cal-table td.has-event::after {
+                content: '';
+                display: block;
+                width: 5px; height: 5px;
+                background: #dc3545;
+                border-radius: 50%;
+                margin: 2px auto 0;
+            } */
+            .cal-dots {
+                display: flex;
+                justify-content: center;
+                gap: 3px;
+                height: 8px;
+                margin-top: 2px;
+            }
+            .cal-dot {
+                width: 7px;
+                height: 7px;
+                border-radius: 50%;
+                display: inline-block;
+            }
+            .cal-dot-mine { background: #0d6efd; }
+            .cal-dot-team { background: #dc3545; }
+
+        </style>
+        <div class="row">
+            <div class="col-6">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <button type="button" id="cal-prev" class="btn btn-sm btn-outline-secondary">&lsaquo;</button>
+                    <h6 class="mb-0" id="cal-title"></h6>
+                    <button type="button" id="cal-next" class="btn btn-sm btn-outline-secondary">&rsaquo;</button>
+                </div>
+                <table class="table table-sm text-center mb-0" id="cal-table">
+                    <thead>
+                        <tr>
+                            <th class="small">일</th><th class="small">월</th><th class="small">화</th>
+                            <th class="small">수</th><th class="small">목</th><th class="small">금</th><th class="small">토</th>
+                        </tr>
+                    </thead>
+                    <tbody id="cal-body"></tbody>
+                </table>
+                 <div class="small text-muted mt-1">
+                    <span class="cal-dot cal-dot-mine d-inline-block"></span> 내 근무
+                    {% if current_user.role in ['Admin', 'Approver', 'Lead'] %}
+                    &nbsp;&nbsp;
+                    <span class="cal-dot cal-dot-team d-inline-block"></span> 팀원 근태
+                    {% endif %}
+                </div>
+            </div>
+            <div class="col-3">
+                <h6>이번달 나의 근무</h6>
+                <ul class="list-unstyled small" id="cal-my-events"></ul>
+            </div>
+            <div class="col-3">
+                <h6 id="cal-day-title">오늘</h6>
+                <ul class="list-unstyled small" id="cal-day-events"></ul>
+            </div>
+        </div>
+    </div>
+    </div>
+    </div>
+
+    <script>
+    (function() {
+        const calBody = document.getElementById('cal-body');
+        const calTitle = document.getElementById('cal-title');
+        const myEventsList = document.getElementById('cal-my-events');
+        const dayEventsList = document.getElementById('cal-day-events');
+        const dayTitle = document.getElementById('cal-day-title');
+        const currentUserName = "{{ current_user.name }}";
+        const canSeeTeam = {{ 'true' if current_user.role in ['Admin', 'Approver', 'Lead'] else 'false' }};
+
+        const today = new Date();
+        const todayStr = today.getFullYear() + '-' + pad(today.getMonth() + 1) + '-' + pad(today.getDate());
+        let viewYear = today.getFullYear();
+        let viewMonth = today.getMonth() + 1;
+        let selectedDate = todayStr;
+        let calData = null;
+
+        function pad(n) { return n < 10 ? '0' + n : '' + n; }
+
+        function loadMonth(year, month) {
+            fetch(`/calendar/data?year=${year}&month=${month}`)
+                .then(r => r.json())
+                .then(data => {
+                    calData = data;
+                    renderCalendar(year, month);
+                    renderMyEvents(data.my_events, month);
+                    if (!(selectedDate in data.team_events) && selectedDate.slice(0,7) !== `${year}-${pad(month)}`) {
+                        selectedDate = `${year}-${pad(month)}-01`;
+                    }
+                    renderDay(selectedDate);
+                });
+        }
+
+        function renderCalendar(year, month) {
+            calTitle.textContent = `${month}월`;
+            calBody.innerHTML = '';
+            const startWeekday = new Date(year, month - 1, 1).getDay();
+            const daysInMonth = new Date(year, month, 0).getDate();
+
+            let row = document.createElement('tr');
+            for (let i = 0; i < startWeekday; i++) row.appendChild(document.createElement('td'));
+
+            // for (let d = 1; d <= daysInMonth; d++) {
+            //     const dateStr = `${year}-${pad(month)}-${pad(d)}`;
+            //     const td = document.createElement('td');
+            //     td.textContent = d;
+            //     if (calData.team_events[dateStr]) td.classList.add('has-event');
+            //     if (dateStr === todayStr) td.classList.add('today-cell');
+            //     if (dateStr === selectedDate) td.classList.add('selected-cell');
+            //     td.addEventListener('click', function() {
+            //         selectedDate = dateStr;
+            //         document.querySelectorAll('#cal-body td.selected-cell').forEach(el => el.classList.remove('selected-cell'));
+            //         td.classList.add('selected-cell');
+            //         renderDay(dateStr);
+            //     });
+            //     row.appendChild(td);
+
+            for (let d = 1; d <= daysInMonth; d++) {
+                const dateStr = `${year}-${pad(month)}-${pad(d)}`;
+                const td = document.createElement('td');
+
+                const dayLabel = document.createElement('div');
+                dayLabel.textContent = d;
+                td.appendChild(dayLabel);
+
+                const dotWrap = document.createElement('div');
+                dotWrap.className = 'cal-dots';
+                const hasMine = !!(calData.my_events[dateStr] && calData.my_events[dateStr].length);
+                const teamList = calData.team_events[dateStr] || [];
+                const hasOthers = teamList.some(ev => !ev.startsWith(currentUserName + ' '));
+                if (hasMine) {
+                    const dot = document.createElement('span');
+                    dot.className = 'cal-dot cal-dot-mine';
+                    dotWrap.appendChild(dot);
+                }
+                if (hasOthers) {
+                    const dot = document.createElement('span');
+                    dot.className = 'cal-dot cal-dot-team';
+                    dotWrap.appendChild(dot);
+                }
+                td.appendChild(dotWrap);
+
+                if (dateStr === todayStr) td.classList.add('today-cell');
+                if (dateStr === selectedDate) td.classList.add('selected-cell');
+                td.addEventListener('click', function() {
+                    selectedDate = dateStr;
+                    document.querySelectorAll('#cal-body td.selected-cell').forEach(el => el.classList.remove('selected-cell'));
+                    td.classList.add('selected-cell');
+                    renderDay(dateStr);
+                });
+                row.appendChild(td);
+                
+                if ((startWeekday + d) % 7 === 0) {
+                    calBody.appendChild(row);
+                    row = document.createElement('tr');
+                }
+            }
+            if (row.children.length > 0) {
+                while (row.children.length < 7) row.appendChild(document.createElement('td'));
+                calBody.appendChild(row);
+            }
+        }
+
+        function renderMyEvents(myEvents, month) {
+            myEventsList.innerHTML = '';
+            const dates = Object.keys(myEvents).sort();
+            if (dates.length === 0) {
+                myEventsList.innerHTML = '<li class="text-muted">내역 없음</li>';
+                return;
+            }
+            dates.forEach(d => {
+                const day = parseInt(d.split('-')[2], 10);
+                myEvents[d].forEach(label => {
+                    const li = document.createElement('li');
+                    li.textContent = `${month}/${day} ${label}`;
+                    myEventsList.appendChild(li);
+                });
+            });
+        }
+
+        function renderDay(dateStr) {
+            const parts = dateStr.split('-');
+            const label = (dateStr === todayStr ? '오늘 ' : '') + `${parseInt(parts[1],10)}/${parseInt(parts[2],10)}`;
+            dayTitle.textContent = label;
+            dayEventsList.innerHTML = '';
+            const events = canSeeTeam
+                ? ((calData.team_events && calData.team_events[dateStr]) || [])
+                : ((calData.my_events && calData.my_events[dateStr]) || []);
+            // const events = (calData.team_events && calData.team_events[dateStr]) || [];
+            if (events.length === 0) {
+                dayEventsList.innerHTML = '<li class="text-muted">근태 내역 없음</li>';
+                return;
+            }
+            events.forEach(ev => {
+                const li = document.createElement('li');
+                li.textContent = ev;
+                dayEventsList.appendChild(li);
+            });
+        }
+
+        document.getElementById('cal-prev').addEventListener('click', function() {
+            viewMonth -= 1;
+            if (viewMonth < 1) { viewMonth = 12; viewYear -= 1; }
+            loadMonth(viewYear, viewMonth);
+        });
+        document.getElementById('cal-next').addEventListener('click', function() {
+            viewMonth += 1;
+            if (viewMonth > 12) { viewMonth = 1; viewYear += 1; }
+            loadMonth(viewYear, viewMonth);
+        });
+
+        loadMonth(viewYear, viewMonth);
+    })();
+    </script>
+
+    <div class="card p-4" id="requests-section">
+        <h3 class="mb-4">내 신청내역</h3>
+        <div class="table-responsive">
+            <table class="table table-sm">
+                <thead>
+                    <tr>
+                        <th class="small">신청일</th>
+                        <th class="small">종류</th>
+                        <th class="small">내용</th>
+                        <th class="small">실행일</th>
+                        <th class="small">승인상태</th>
+                        <th class="small">관리</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for r in requests %}
+                    <tr>
+                        <td class="small">{{ r['created'].split(' ')[0] if r['created'] else '' }}</td>
+                        <td class="small">{{ r['type'] }}</td>
+                        <td class="small">{{ r.summary }}</td>
+                        <td class="small">
+                            {% set content = r.content | fromjson %}
+                            {% if r.type == '시간외 근무' %}
+                                {{ content.work_date }}
+                            {% elif r.type == '출장' %}
+                                {{ (content.start_date + "<br>~ " + content.end_date) | safe }}
+                            {% elif r.type == '대휴 사용' or r.type == '대휴신청' %}
+                                {{ content.leave_date }}
+                            {% elif r.type == '자기개발비' %}
+                                {{ (content.start_date + "<br>~ " + content.end_date) | safe }}
+                            {% endif %}
+                        </td>
+                        <td class="small">
+                            {% if r.status == "approved" %}
+                                승인 완료
+                            {% elif r.status == "rejected" %}
+                                반려
+                            {% else %}
+                                승인 대기
+                            {% endif %}
+                        </td>
+                        <td class="small">
+                            {% if '승인 대기' in r.status or r.status == '재신청' %}
+                                <a href="/request/edit/{{ r.id }}" class="btn btn-sm btn-outline-primary" style="color: #198754;">수정</a>
+                            {% elif r.status == "approved" %}
+                                {% set content = r.content | fromjson %}
+                                {% if r.type == '대휴 사용' or (r.type == '시간외 근무' and content.compensation == '대체휴가') %}
+                                    -
+                                {% else %}
+                                    <a href="/admin-dashboard/pdf/{{ r.id }}" class="btn btn-sm btn-pdf">PDF</a>
+                                {% endif %}
+                            {% elif r.status == "rejected" %}
+                                <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#rejectionModal" data-reason="{{ r.reject_reason }}" data-edit-url="/request/edit/{{ r.id }}">
+                                    반려
+                                </button>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <nav aria-label="Page navigation">
+            <ul class="pagination pagination-sm justify-content-center">
+                {% if page > 1 %}
+                <li class="page-item"><a class="page-link" href="?page=1#requests-section">&laquo;</a></li>
+                <li class="page-item"><a class="page-link" href="?page={{ page - 1 }}#requests-section">&lsaquo;</a></li>
+                {% endif %}
+
+                {% set start_page = [page - 2, 1] | max %}
+                {% set end_page = [page + 2, total_pages] | min %}
+
+                {% if start_page > 1 %}
+                <li class="page-item disabled"><span class="page-link">...</span></li>
+                {% endif %}
+
+                {% for i in range(start_page, end_page + 1) %}
+                <li class="page-item {% if i == page %}active{% endif %}"><a class="page-link" href="?page={{ i }}#requests-section">{{ i }}</a></li>
+                {% endfor %}
+
+                {% if end_page < total_pages %}
+                <li class="page-item disabled"><span class="page-link">...</span></li>
+                {% endif %}
+
+                {% if page < total_pages %}
+                <li class="page-item"><a class="page-link" href="?page={{ page + 1 }}#requests-section">&rsaquo;</a></li>
+                <li class="page-item"><a class="page-link" href="?page={{ total_pages }}#requests-section">&raquo;</a></li>
+                {% endif %}
+            </ul>
+        </nav>
+    </div>
+
+        <!-- 게시판 버튼 블록 -->
+        <div class="col-md-12 mb-4">
+            <div class="card">
+                <div class="card-body text-center">
+                    <a href="/board" class="btn btn-info btn-lg">
+                        📋 게시판 바로가기
+                    </a>
+                </div>
+            </div>
+        </div>
+
+
+    <!-- Rejection Modal -->
+    <div class="modal fade" id="rejectionModal" tabindex="-1" aria-labelledby="rejectionModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="rejectionModalLabel">반려 사유</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <p id="rejectionReasonText"></p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">닫기</button>
+            <a href="#" id="editRequestBtn" class="btn btn-primary">수정</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      var rejectionModal = document.getElementById('rejectionModal')
+      rejectionModal.addEventListener('show.bs.modal', function (event) {
+        var button = event.relatedTarget
+        var reason = button.getAttribute('data-reason')
+        var editUrl = button.getAttribute('data-edit-url')
+
+        var modalReasonText = rejectionModal.querySelector('#rejectionReasonText')
+        var editRequestBtn = rejectionModal.querySelector('#editRequestBtn')
+
+        modalReasonText.textContent = reason
+        editRequestBtn.setAttribute('href', editUrl)
+      })
+    </script>
+    </div>
+{% endblock %}

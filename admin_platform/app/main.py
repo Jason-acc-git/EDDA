@@ -117,9 +117,11 @@ def dashboard(request: Request, page: int = 1, db: Session = Depends(get_db), cu
 def test():
     return {"message": "Server is working"}
 
+CALENDAR_TEAM_ROLES = ("Admin", "Approver", "Lead")
+
 @app.get("/calendar/data")
 def calendar_data(year: int, month: int, current_user: User = Depends(get_current_user, use_cache=False)):
-    data = get_calendar_events(year, month, current_user.name)
+    data = get_calendar_events(year, month, current_user.name, current_user.role in CALENDAR_TEAM_ROLES)
     return JSONResponse(content=data, media_type="application/json; charset=utf-8")
 
 #app.include_router(employee_routes.router)
@@ -290,7 +292,7 @@ def test_all_requests():
         return {"error": str(e)}
 
 
-def get_calendar_events(year: int, month: int, current_user_name: str):
+def get_calendar_events(year: int, month: int, current_user_name: str, can_see_team_overtime: bool = False):
     """월별 근태 이벤트(내 근무 / 팀 전체) 조회"""
     import sqlite3, json
     from datetime import datetime, timedelta
@@ -354,7 +356,9 @@ def get_calendar_events(year: int, month: int, current_user_name: str):
             content = {}
 
         for d, label in event_for(rtype, content):
-            team_events.setdefault(d, []).append(f"{name} {label}")
+            # 시간외근무는 Lead/Approver/Admin 과 본인만 볼 수 있음 (휴가/출장은 모두 공개)
+            if rtype != '시간외 근무' or can_see_team_overtime or name == current_user_name:
+                team_events.setdefault(d, []).append(f"{name} {label}")
             if name == current_user_name:
                 my_events.setdefault(d, []).append(label)
 

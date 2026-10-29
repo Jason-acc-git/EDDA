@@ -258,6 +258,7 @@
             dayTitle.textContent = label;
             dayEventsList.innerHTML = '';
             const events = (calData.team_events && calData.team_events[dateStr]) || [];
+            // const events = (calData.team_events && calData.team_events[dateStr]) || [];
             if (events.length === 0) {
                 dayEventsList.innerHTML = '<li class="text-muted">근태 내역 없음</li>';
                 return;
