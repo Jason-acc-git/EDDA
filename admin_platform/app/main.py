@@ -117,11 +117,11 @@ def dashboard(request: Request, page: int = 1, db: Session = Depends(get_db), cu
 def test():
     return {"message": "Server is working"}
 
-CALENDAR_TEAM_ROLES = ("Admin", "Approver", "Lead")
+CALENDAR_ENGINEER_DEPTS = ("품질랩", "공정랩", "데이터랩")  # Lead 가 시간외근무를 볼 수 있는 부서
 
 @app.get("/calendar/data")
 def calendar_data(year: int, month: int, current_user: User = Depends(get_current_user, use_cache=False)):
-    data = get_calendar_events(year, month, current_user.name, current_user.role in CALENDAR_TEAM_ROLES)
+    data = get_calendar_events(year, month, current_user.name, current_user.role)
     return JSONResponse(content=data, media_type="application/json; charset=utf-8")
 
 #app.include_router(employee_routes.router)
@@ -292,7 +292,7 @@ def test_all_requests():
         return {"error": str(e)}
 
 
-def get_calendar_events(year: int, month: int, current_user_name: str, can_see_team_overtime: bool = False):
+def get_calendar_events(year: int, month: int, current_user_name: str, viewer_role: str = ""):
     """월별 근태 이벤트(내 근무 / 팀 전체) 조회"""
     import sqlite3, json
     from datetime import datetime, timedelta
@@ -341,10 +341,24 @@ def get_calendar_events(year: int, month: int, current_user_name: str, can_see_t
         cursor = conn.cursor()
         cursor.execute("SELECT name, type, content FROM requests WHERE status = 'approved'")
         rows = cursor.fetchall()
+        cursor.execute("SELECT name, dept, role FROM employees")
+        emp_info = {(n or "").strip(): ((d or "").strip(), (r or "").strip()) for n, d, r in cursor.fetchall()}
         conn.close()
     except Exception as e:
         print(f"캘린더 데이터 조회 오류: {e}")
         rows = []
+        emp_info = {}
+
+    def can_see_overtime(target_name):
+        """시간외근무 열람 권한: 본인 / Admin 전체 / Lead=엔지니어팀 / Approver=행정팀+Lead"""
+        if target_name == current_user_name or viewer_role == 'Admin':
+            return True
+        dept, role = emp_info.get((target_name or "").strip(), ("", ""))
+        if viewer_role == 'Lead':
+            return dept in CALENDAR_ENGINEER_DEPTS
+        if viewer_role == 'Approver':
+            return dept == '행정팀' or role == 'Lead'
+        return False
 
     my_events = {}
     team_events = {}
@@ -356,8 +370,8 @@ def get_calendar_events(year: int, month: int, current_user_name: str, can_see_t
             content = {}
 
         for d, label in event_for(rtype, content):
-            # 시간외근무는 Lead/Approver/Admin 과 본인만 볼 수 있음 (휴가/출장은 모두 공개)
-            if rtype != '시간외 근무' or can_see_team_overtime or name == current_user_name:
+            # 출장/대휴는 모두 공개, 시간외근무는 can_see_overtime 권한이 있을 때만
+            if rtype != '시간외 근무' or can_see_overtime(name):
                 team_events.setdefault(d, []).append(f"{name} {label}")
             if name == current_user_name:
                 my_events.setdefault(d, []).append(label)
